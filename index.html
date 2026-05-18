@@ -270,9 +270,17 @@
         if (!data || !data.success) {
           throw new Error((data && data.message) || 'JAMB number not found. Check and try again.');
         }
-        saveSession('reg_no', jamb);
         var d = data.data || {};
-        if (d.candidate) saveSession('candidate', d.candidate);
+        saveSession('reg_no', jamb);
+        saveSession('candidate', d);
+
+        if (d.has_epin === true) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Proceed to Purchase E-Pin';
+          setFieldError(jambError, 'You already have an E-Pin. Please login with your E-Pin on the right.');
+          return;
+        }
+
         window.location.href = 'verify.html';
       }).catch(function (err) {
         submitBtn.disabled = false;
@@ -335,8 +343,8 @@
           throw new Error((data && data.message) || 'Invalid JAMB number or E-Pin. Please try again.');
         }
         var d = data.data || {};
-        if (d.candidate) saveSession('candidate', d.candidate);
-        if (d.token)     saveSession('candidate_token', d.token);
+        if (d.token) saveSession('candidate_token', d.token);
+        saveSession('candidate', d.candidate || d);
 
         if (d.status === 1) {
           /* Already registered — preview in read-only mode */

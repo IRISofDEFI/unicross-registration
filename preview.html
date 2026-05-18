@@ -346,7 +346,7 @@
       var c     = candidate || {};
       var tbody = document.getElementById('preview-candidate');
       [
-        ['Full Name',       c.name       || '—'],
+        ['Full Name',       c.fullname   || '—'],
         ['Reg No',          regNo              ],
         ['Faculty',         c.faculty    || '—'],
         ['Department',      c.department || '—'],
@@ -517,9 +517,8 @@
       confirmBtn.disabled = true;
       confirmBtn.innerHTML =
         '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
-        'Submitting&hellip;';
+        'Uploading files&hellip;';
 
-      /* Reconstruct Blobs from sessionStorage base64 data */
       function dataURLtoBlob(dataURL) {
         var parts = dataURL.split(',');
         var mime  = parts[0].match(/:(.*?);/)[1];
@@ -530,57 +529,83 @@
         return new Blob([u8], { type: mime });
       }
 
-      var passportData  = sessionStorage.getItem('ucrs_ss_passport');
-      var waecData      = sessionStorage.getItem('ucrs_ss_waec');
-      var jambSlipData  = sessionStorage.getItem('ucrs_ss_jamb_slip');
+      var passportData = sessionStorage.getItem('ucrs_ss_passport');
+      var waecData     = sessionStorage.getItem('ucrs_ss_waec');
+      var jambSlipData = sessionStorage.getItem('ucrs_ss_jamb_slip');
 
-      var biodata     = getReg('biodata')  || {};
-      var utmeResults = getReg('utme')     || [];
-      var ssceResults = getReg('ssce')     || [];
+      var biodata     = getReg('biodata') || {};
+      var ssceResults = getReg('ssce')    || [];
 
-      var fd = new FormData();
-      fd.append('reg_no',           regNo || '');
-      fd.append('epin',             epin  || '');
-      fd.append('email',            biodata.email            || '');
-      fd.append('phone',            biodata.phone            || '');
-      fd.append('address',          biodata.address          || '');
-      var c = candidate || {};
-      fd.append('state',  c.state_of_origin || c.state || '');
-      fd.append('lga',    c.lga    || '');
-      fd.append('gender', c.gender || '');
-      fd.append('dob',    biodata.dob || '');
-      fd.append('blood_group',      biodata.blood            || '');
-      fd.append('guardian_name',    biodata.guardianName     || '');
-      fd.append('guardian_phone',   biodata.guardianPhone    || '');
-      fd.append('guardian_address', biodata.guardianAddress  || '');
-      fd.append('utme_results',     JSON.stringify(utmeResults));
-      fd.append('ssce_results',     JSON.stringify(ssceResults));
-      if (passportData)  fd.append('photo',  dataURLtoBlob(passportData),  'passport.jpg');
-      if (waecData)      fd.append('waec',       dataURLtoBlob(waecData),      files.waec      || 'waec.jpg');
-      if (jambSlipData)  fd.append('jamb_slip',  dataURLtoBlob(jambSlipData),  files.jambSlip  || 'jamb_slip.jpg');
+      /* Step 1: passport photo */
+      var passportFD = new FormData();
+      passportFD.append('photo', dataURLtoBlob(passportData), 'passport.jpg');
 
-      apiFetch('/api/registration/profile/submit/', { method: 'POST', body: fd })
-        .then(function (data) {
-          if (!data || !data.success) {
-            throw new Error((data && data.message) || 'Submission failed. Please try again.');
+      /* Step 2: WAEC/NECO credential */
+      var waecFD = new FormData();
+      waecFD.append('file',  dataURLtoBlob(waecData), files.waec || 'waec.jpg');
+      waecFD.append('label', 'SSCE RESULT 1');
+      waecFD.append('type',  'SSCE');
+
+      /* Step 3: JAMB credential */
+      var jambFD = new FormData();
+      jambFD.append('file',  dataURLtoBlob(jambSlipData), files.jambSlip || 'jamb_slip.jpg');
+      jambFD.append('label', 'UTME RESULT');
+      jambFD.append('type',  'UTME');
+
+      /* Step 4: SSCE results JSON */
+      var ssceSittings = ssceResults.map(function (s) {
+        return {
+          sitting: s.sitting,
+          year:    s.examYear,
+          session: 'May/June',
+          regno:   s.examNo,
+          type:    s.examType,
+          subjects: (s.subjects || []).map(function (sub) {
+            return { name: String(sub.subject || '').toUpperCase(), grade: sub.grade };
+          })
+        };
+      });
+
+      /* Run steps 1–4 in parallel */
+      Promise.all([
+        apiFetch('/api/registration/profile/passport/',    { method: 'POST', body: passportFD }),
+        apiFetch('/api/registration/profile/credentials/', { method: 'POST', body: waecFD }),
+        apiFetch('/api/registration/profile/credentials/', { method: 'POST', body: jambFD }),
+        apiFetch('/api/registration/profile/ssce/',        { method: 'POST', body: { sittings: ssceSittings } })
+      ])
+      .then(function (results) {
+        results.forEach(function (r, i) {
+          if (r && r.success === false) {
+            throw new Error((r.message) || ('Upload step ' + (i + 1) + ' failed.'));
           }
-          clearAllReg();
-          saveReg('submitted', 'true');
-          sessionStorage.removeItem('ucrs_ss_passport');
-          sessionStorage.removeItem('ucrs_ss_waec');
-          sessionStorage.removeItem('ucrs_ss_jamb_slip');
-          window.location.href = 'submitted.html';
-        })
-        .catch(function (err) {
-          confirmModal.hide();
-          confirmBtn.disabled = false;
-          confirmBtn.textContent = 'Yes, Submit';
-          var alert = document.getElementById('preview-error-alert');
-          document.getElementById('preview-error-msg').textContent =
-            err.message || 'Submission failed. Please try again.';
-          alert.classList.remove('d-none');
-          alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
+        /* Step 5: final submit */
+        confirmBtn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
+          'Finalising&hellip;';
+        return apiFetch('/api/registration/profile/submit/', { method: 'POST' });
+      })
+      .then(function (data) {
+        if (!data || !data.success) {
+          throw new Error((data && data.message) || 'Submission failed. Please try again.');
+        }
+        clearAllReg();
+        saveReg('submitted', 'true');
+        sessionStorage.removeItem('ucrs_ss_passport');
+        sessionStorage.removeItem('ucrs_ss_waec');
+        sessionStorage.removeItem('ucrs_ss_jamb_slip');
+        window.location.href = 'submitted.html';
+      })
+      .catch(function (err) {
+        confirmModal.hide();
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Yes, Submit';
+        var alertEl = document.getElementById('preview-error-alert');
+        document.getElementById('preview-error-msg').textContent =
+          err.message || 'Submission failed. Please try again.';
+        alertEl.classList.remove('d-none');
+        alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
     });
 
   </script>

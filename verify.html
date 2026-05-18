@@ -159,8 +159,8 @@
 
     /* Populate read-only candidate table */
     const rows = [
-      ['Full Name',     candidate.name       || '—'],
-      ['JAMB Reg No',   regNo],
+      ['Full Name',     candidate.fullname   || '—'],
+      ['JAMB Reg No',   candidate.jamb_reg_no || regNo],
       ['Faculty',       candidate.faculty    || '—'],
       ['Department',    candidate.department || '—'],
       ['Programme',     candidate.programme  || '—'],

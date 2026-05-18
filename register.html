@@ -831,7 +831,7 @@
     function updateSidebar(n) {
       var sbName = document.getElementById('sb-name');
       var sbReg  = document.getElementById('sb-reg');
-      if (sbName) sbName.textContent = (candidate && candidate.name) ? candidate.name : '—';
+      if (sbName) sbName.textContent = (candidate && (candidate.fullname || candidate.name)) ? (candidate.fullname || candidate.name) : '—';
       if (sbReg)  sbReg.textContent  = regNo ? 'Reg No: ' + regNo : '—';
 
       for (var i = 1; i <= TOTAL_STEPS; i++) {
@@ -891,7 +891,7 @@
     (function buildCandidateTable() {
       var c = candidate || {};
       var rows = [
-        ['Full Name',       c.name       || '—'],
+        ['Full Name',       c.fullname   || '—'],
         ['Reg No',          regNo        || '—'],
         ['Faculty',         c.faculty    || '—'],
         ['Department',      c.department || '—'],

@@ -36,7 +36,7 @@ function formatNaira(amount) {
 
 /* ─── API error parser ───────────────────────────────── */
 
-function parseLaravelErrors(responseData) {
+function parseApiErrors(responseData) {
   if (responseData && typeof responseData.errors === 'object' && responseData.errors !== null) {
     const messages = Object.values(responseData.errors).map(function (msgs) {
       return Array.isArray(msgs) ? msgs[0] : msgs;
@@ -56,7 +56,7 @@ function parseLaravelErrors(responseData) {
  * Usage — JSON body:
  *   apiFetch('/api/registration/login/', {
  *     method: 'POST',
- *     body: { reg_no: '...', epin: '...' }
+ *     body: { jamb_reg_no: '...', epin: '...' }
  *   });
  *
  * Usage — file upload (FormData):

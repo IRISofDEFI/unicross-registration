@@ -164,7 +164,7 @@
     const jambNo    = getSession('reg_no');
 
     document.getElementById('display-name').textContent =
-      candidate ? candidate.name : 'Unknown Candidate';
+      candidate ? (candidate.fullname || candidate.name || 'Unknown Candidate') : 'Unknown Candidate';
     document.getElementById('display-jamb').textContent =
       'JAMB Reg No: ' + (jambNo || '—');
 
@@ -206,8 +206,7 @@
         'Initiating payment&hellip;';
 
       apiFetch('/api/registration/' + candidateId + '/pay/', {
-        method: 'POST',
-        body: { txn_ref: getSession('txn_ref') || '' }
+        method: 'POST'
       }).then(function (data) {
         if (!data || !data.success) {
           throw new Error((data && data.message) || 'Could not initiate payment. Please try again.');
