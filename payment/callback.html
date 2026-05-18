@@ -116,6 +116,15 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      /* ── DEBUG: log every param Credo sends ── */
+      console.log('=== CALLBACK URL PARAMS ===');
+      var debugParams = new URLSearchParams(window.location.search);
+      debugParams.forEach(function (value, key) {
+        console.log(key + ': ' + value);
+      });
+      console.log('Full URL:', window.location.href);
+      console.log('===========================');
+
       var MAX_REFRESHES = 2;
 
       var params = new URLSearchParams(window.location.search);
