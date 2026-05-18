@@ -519,6 +519,16 @@
         '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
         'Uploading files&hellip;';
 
+      var safetyTimer = setTimeout(function () {
+        confirmModal.hide();
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Yes, Submit';
+        var alertEl = document.getElementById('preview-error-alert');
+        document.getElementById('preview-error-msg').textContent =
+          'Request timed out. Please try again.';
+        alertEl.classList.remove('d-none');
+      }, 30000);
+
       function dataURLtoBlob(dataURL) {
         var parts = dataURL.split(',');
         var mime  = parts[0].match(/:(.*?);/)[1];
@@ -586,6 +596,7 @@
         return apiFetch('/api/registration/profile/submit/', { method: 'POST' });
       })
       .then(function (data) {
+        clearTimeout(safetyTimer);
         if (!data || !data.success) {
           throw new Error((data && data.message) || 'Submission failed. Please try again.');
         }
@@ -597,6 +608,7 @@
         window.location.href = 'submitted.html';
       })
       .catch(function (err) {
+        clearTimeout(safetyTimer);
         confirmModal.hide();
         confirmBtn.disabled = false;
         confirmBtn.textContent = 'Yes, Submit';
@@ -607,6 +619,15 @@
         alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     });
+
+    function resetPreviewBtns() {
+      var submitBtn = document.getElementById('btn-submit');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Application'; }
+      var confirmBtn = document.getElementById('btn-confirm-submit');
+      if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Yes, Submit'; }
+    }
+    window.addEventListener('pageshow',  resetPreviewBtns);
+    window.addEventListener('pagehide',  resetPreviewBtns);
 
   </script>
 </body>

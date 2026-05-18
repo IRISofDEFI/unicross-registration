@@ -111,7 +111,7 @@
                 <div class="alert alert-danger d-none py-2 mb-3" id="contact-error"
                      role="alert" style="font-size:0.875rem;"></div>
                 <div class="d-grid">
-                  <button type="submit" class="btn btn-unicross-blue btn-lg">
+                  <button type="submit" id="btn-proceed" class="btn btn-unicross-blue btn-lg">
                     Proceed to Payment &rarr;
                   </button>
                 </div>
@@ -227,10 +227,18 @@
         '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
         'Saving&hellip;';
 
+      var safetyTimer = setTimeout(function () {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Proceed to Payment &rarr;';
+        formErr.textContent = 'Request timed out. Please try again.';
+        formErr.classList.remove('d-none');
+      }, 30000);
+
       apiFetch('/api/registration/' + candidateId + '/contact/', {
         method: 'PATCH',
         body: { email: email, phone: phone }
       }).then(function (data) {
+        clearTimeout(safetyTimer);
         if (!data || !data.success) {
           throw new Error((data && data.message) || 'Failed to save contact details. Please try again.');
         }
@@ -238,8 +246,9 @@
         saveSession('phone', phone);
         window.location.href = 'payment.html';
       }).catch(function (err) {
+        clearTimeout(safetyTimer);
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Proceed to Payment →';
+        submitBtn.innerHTML = 'Proceed to Payment &rarr;';
         formErr.textContent = err.message || 'Failed to save contact details. Please try again.';
         formErr.classList.remove('d-none');
       });
@@ -252,6 +261,13 @@
         document.getElementById('contact-error').classList.add('d-none');
       });
     });
+
+    function resetProceedBtn() {
+      var btn = document.getElementById('btn-proceed');
+      if (btn) { btn.disabled = false; btn.innerHTML = 'Proceed to Payment &rarr;'; }
+    }
+    window.addEventListener('pageshow',  resetProceedBtn);
+    window.addEventListener('pagehide',  resetProceedBtn);
 
   </script>
 </body>

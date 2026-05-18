@@ -175,9 +175,16 @@
         '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
         'Initiating payment&hellip;';
 
+      var safetyTimer = setTimeout(function () {
+        btn.disabled = false;
+        btn.textContent = 'Pay Now';
+        showPayError('Request timed out. Please try again.');
+      }, 30000);
+
       apiFetch('/api/registration/' + candidateId + '/pay/', {
         method: 'POST'
       }).then(function (data) {
+        clearTimeout(safetyTimer);
         if (!data || !data.success) {
           throw new Error((data && data.message) || 'Could not initiate payment. Please try again.');
         }
@@ -188,11 +195,19 @@
           throw new Error('No payment URL returned from server.');
         }
       }).catch(function (err) {
+        clearTimeout(safetyTimer);
         btn.disabled = false;
         btn.textContent = 'Pay Now';
         showPayError(err.message || 'Could not initiate payment. Please try again.');
       });
     });
+
+    function resetPayBtn() {
+      var btn = document.getElementById('btn-pay');
+      if (btn) { btn.disabled = false; btn.textContent = 'Pay Now'; }
+    }
+    window.addEventListener('pageshow',  resetPayBtn);
+    window.addEventListener('pagehide',  resetPayBtn);
 
   </script>
 </body>
