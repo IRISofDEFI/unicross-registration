@@ -265,7 +265,7 @@
 
       apiFetch('/api/registration/lookup/', {
         method: 'POST',
-        body: { reg_no: jamb }
+        body: { jamb_reg_no: jamb }
       }).then(function (data) {
         if (!data || !data.success) {
           throw new Error((data && data.message) || 'JAMB number not found. Check and try again.');
@@ -329,7 +329,7 @@
 
       apiFetch('/api/registration/login/', {
         method: 'POST',
-        body: { reg_no: jamb, epin: epin }
+        body: { jamb_reg_no: jamb, epin: epin }
       }).then(function (data) {
         if (!data || !data.success) {
           throw new Error((data && data.message) || 'Invalid JAMB number or E-Pin. Please try again.');
