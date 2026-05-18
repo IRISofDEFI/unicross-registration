@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNICROSS Portal — Post-UTME Registration</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-wrapper">
+
+  <!-- ═══════════════════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════════════════ -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <img src="unicross_logo.jpg" height="60" alt="University Logo" class="header-logo institution-logo" />
+        <div class="header-divider"></div>
+        <div class="wordmark">
+          <div>
+            <span class="brand-main">UNICROSS</span>
+            <span class="brand-sub ms-2">PORTAL</span>
+          </div>
+          <div class="university-name institution-name">University of Cross River State</div>
+        </div>
+        <div class="header-session-label">2025/2026 Screening Registration</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- ═══════════════════════════════════════════════
+         HERO
+    ═══════════════════════════════════════════════ -->
+    <section class="hero-section">
+      <div class="container">
+        <h1>2025/2026 Post-UTME Screening Registration</h1>
+        <p>
+          Welcome, prospective student. Purchase your E-Pin or log in with an
+          existing pin to upload your documents and submit your application.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         TWO REGISTRATION CARDS
+    ═══════════════════════════════════════════════ -->
+    <section class="card-section">
+      <div class="container">
+        <div class="row g-4 justify-content-center">
+
+          <!-- LEFT CARD — New Candidate -->
+          <div class="col-md-6 col-lg-5">
+            <div class="reg-card card">
+              <div class="card-header d-flex align-items-center">
+                <span class="card-icon">&#9733;</span>
+                New Candidate
+              </div>
+              <div class="card-body">
+                <p class="text-muted mb-3" style="font-size:0.9rem;">
+                  First time here? Enter your JAMB registration number to check
+                  your details and purchase an E-Pin.
+                </p>
+                <form id="form-new" novalidate>
+                  <div class="mb-3">
+                    <label for="new-jamb" class="form-label">
+                      JAMB Registration Number
+                    </label>
+                    <input
+                      type="text"
+                      id="new-jamb"
+                      class="form-control"
+                      placeholder="e.g. 12345678AB"
+                      autocomplete="off"
+                    />
+                    <span class="field-error" id="new-jamb-error"></span>
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-unicross-blue btn-lg">
+                      Proceed to Purchase E-Pin
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT CARD — Returning Candidate -->
+          <div class="col-md-6 col-lg-5">
+            <div class="reg-card card">
+              <div class="card-header d-flex align-items-center">
+                <span class="card-icon">&#128274;</span>
+                Already Have an E-Pin?
+              </div>
+              <div class="card-body">
+                <p class="text-muted mb-3" style="font-size:0.9rem;">
+                  Already purchased your E-Pin? Enter your JAMB number and pin
+                  to access the document upload portal.
+                </p>
+                <form id="form-login" novalidate>
+                  <div class="mb-3">
+                    <label for="login-jamb" class="form-label">
+                      JAMB Registration Number
+                    </label>
+                    <input
+                      type="text"
+                      id="login-jamb"
+                      class="form-control"
+                      placeholder="e.g. 12345678AB"
+                      autocomplete="off"
+                    />
+                    <span class="field-error" id="login-jamb-error"></span>
+                  </div>
+                  <div class="mb-4">
+                    <label for="login-epin" class="form-label">E-Pin</label>
+                    <input
+                      type="text"
+                      id="login-epin"
+                      class="form-control"
+                      placeholder="Enter your E-Pin"
+                      autocomplete="off"
+                    />
+                    <span class="field-error" id="login-epin-error"></span>
+                  </div>
+                  <div class="alert alert-danger d-none py-2 mb-3" id="login-general-error"
+                       role="alert" style="font-size:0.875rem;"></div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-unicross-navy btn-lg">
+                      Login to Continue
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         REGISTRATION INSTRUCTIONS
+    ═══════════════════════════════════════════════ -->
+    <section class="instructions-section">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9">
+            <h2>How to Complete Your Registration</h2>
+            <ol class="step-list">
+              <li>
+                <div>
+                  <strong>Enter your JAMB Registration Number</strong><br />
+                  Type your JAMB reg number in the "New Candidate" card on the
+                  left and click <em>Proceed to Purchase E-Pin</em>. Your
+                  details will be fetched from the JAMB database for
+                  verification.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Verify your information &amp; update contact details</strong><br />
+                  Confirm that your name, faculty, department, and programme are
+                  correct, then provide a valid email address and phone number.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Pay for your E-Pin (₦2,000)</strong><br />
+                  Click <em>Pay Now</em> on the payment page. You will be
+                  redirected to our secure payment gateway (Credo). Payment can
+                  be made via card, bank transfer, or USSD.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Copy and save your E-Pin</strong><br />
+                  After successful payment your unique E-Pin will be displayed.
+                  Keep it safe — you will need it every time you log in.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Log in and upload your documents</strong><br />
+                  Return to this page and use the "Already Have an E-Pin?" card
+                  on the right to log in. Upload your passport photo, WAEC/NECO
+                  result, and JAMB result slip.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Submit your application</strong><br />
+                  Review your details and click <em>Submit Application</em>. Once
+                  submitted your application is locked and will be reviewed
+                  during the screening exercise.
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════════════ -->
+  <footer class="site-footer text-center">
+    <div class="container">
+      <p class="mb-0">
+        &copy; 2025 <span class="institution-name">University of Cross River State</span>. All rights reserved.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script src="js/main.js"></script>
+  <script>
+    /* ── JAMB number format validation ───────────────
+       Accepts 8–11 characters: digits with optional
+       trailing letters (e.g. 98765432CD, 12345678AB).   */
+    function isValidJamb(val) {
+      return /^\d{8,13}[A-Za-z]{0,2}$/.test(val.trim());
+    }
+
+    function setFieldError(errorEl, msg) {
+      errorEl.textContent = msg;
+      errorEl.classList.add('visible');
+    }
+    function clearFieldError(errorEl) {
+      errorEl.textContent = '';
+      errorEl.classList.remove('visible');
+    }
+
+    /* ── New Candidate form ───────────────────────── */
+    document.getElementById('form-new').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const jambInput = document.getElementById('new-jamb');
+      const jambError = document.getElementById('new-jamb-error');
+      const submitBtn = this.querySelector('[type="submit"]');
+      const jamb = jambInput.value.trim().toUpperCase();
+
+      clearFieldError(jambError);
+
+      if (!jamb) {
+        setFieldError(jambError, 'Please enter your JAMB registration number.');
+        jambInput.focus();
+        return;
+      }
+      if (!isValidJamb(jamb)) {
+        setFieldError(jambError, 'Enter a valid JAMB number (e.g. 98765432CD).');
+        jambInput.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
+        'Checking&hellip;';
+
+      apiFetch('/api/registration/lookup/', {
+        method: 'POST',
+        body: { reg_no: jamb }
+      }).then(function (data) {
+        if (!data || !data.success) {
+          throw new Error((data && data.message) || 'JAMB number not found. Check and try again.');
+        }
+        saveSession('reg_no', jamb);
+        var d = data.data || {};
+        if (d.candidate) saveSession('candidate', d.candidate);
+        window.location.href = 'verify.html';
+      }).catch(function (err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Proceed to Purchase E-Pin';
+        setFieldError(jambError, err.message || 'JAMB number not found. Check and try again.');
+      });
+    });
+
+    /* ── Returning Candidate (login) form ─────────── */
+    document.getElementById('form-login').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const jambInput  = document.getElementById('login-jamb');
+      const jambError  = document.getElementById('login-jamb-error');
+      const epinInput  = document.getElementById('login-epin');
+      const epinError  = document.getElementById('login-epin-error');
+      const loginError = document.getElementById('login-general-error');
+      const submitBtn  = this.querySelector('[type="submit"]');
+
+      const jamb = jambInput.value.trim().toUpperCase();
+      const epin = epinInput.value.trim();
+
+      clearFieldError(jambError);
+      clearFieldError(epinError);
+      loginError.classList.add('d-none');
+
+      let valid = true;
+
+      if (!jamb) {
+        setFieldError(jambError, 'Please enter your JAMB registration number.');
+        jambInput.focus();
+        valid = false;
+      } else if (!isValidJamb(jamb)) {
+        setFieldError(jambError, 'Enter a valid JAMB number (e.g. 98765432CD).');
+        jambInput.focus();
+        valid = false;
+      }
+
+      if (!epin) {
+        setFieldError(epinError, 'Please enter your E-Pin.');
+        if (valid) epinInput.focus();
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
+        'Verifying&hellip;';
+
+      saveSession('reg_no', jamb);
+      saveSession('epin',   epin);
+
+      apiFetch('/api/registration/login/', {
+        method: 'POST',
+        body: { reg_no: jamb, epin: epin }
+      }).then(function (data) {
+        if (!data || !data.success) {
+          throw new Error((data && data.message) || 'Invalid JAMB number or E-Pin. Please try again.');
+        }
+        var d = data.data || {};
+        if (d.candidate) saveSession('candidate', d.candidate);
+        if (d.token)     saveSession('candidate_token', d.token);
+
+        if (d.status === 1) {
+          /* Already registered — preview in read-only mode */
+          try { localStorage.setItem('ucrs_reg_submitted', 'true'); } catch (err) {}
+          window.location.href = 'preview.html';
+        } else {
+          window.location.href = 'register.html';
+        }
+      }).catch(function (err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Login to Continue';
+        loginError.textContent = err.message || 'Invalid JAMB number or E-Pin. Please try again.';
+        loginError.classList.remove('d-none');
+      });
+    });
+
+    /* ── Clear inline errors on input ────────────── */
+    ['new-jamb', 'login-jamb', 'login-epin'].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', function () {
+          const err = document.getElementById(id + '-error');
+          if (err) clearFieldError(err);
+          const gen = document.getElementById('login-general-error');
+          if (gen) gen.classList.add('d-none');
+        });
+      }
+    });
+
+    loadInstitution();
+  </script>
+
+</body>
+</html>

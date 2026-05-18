@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNICROSS Portal — Verify Details</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-wrapper">
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <img src="unicross_logo.jpg" height="60" alt="University Logo" class="header-logo institution-logo" />
+        <div class="header-divider"></div>
+        <div class="wordmark">
+          <div>
+            <span class="brand-main">UNICROSS</span>
+            <span class="brand-sub ms-2">PORTAL</span>
+          </div>
+          <div class="university-name institution-name">University of Cross River State</div>
+        </div>
+        <div class="header-session-label">2025/2026 Screening Registration</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- PAGE TITLE -->
+    <div class="page-title-bar">
+      <div class="container">
+        <h2>Candidate Verification</h2>
+        <p>Step 1 of 3 — Confirm your details and provide contact information</p>
+      </div>
+    </div>
+
+    <div class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+
+          <!-- READ-ONLY CANDIDATE INFO CARD -->
+          <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom fw-semibold" style="color:var(--unicross-navy);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                class="bi bi-person-check me-2" viewBox="0 0 16 16">
+                <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335
+                  1.338a.75.75 0 0 1-1.06 0l-.5-.5a.75.75 0 1 1 1.06-1.06l-.029.03
+                  .805-.807a.75.75 0 1 1 1.06 1.06z"/>
+                <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0
+                  4m.256 7a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484
+                  10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844
+                  9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"/>
+              </svg>
+              JAMB Details (Read-Only)
+            </div>
+            <div class="card-body">
+              <table class="table table-sm table-borderless mb-0">
+                <tbody id="candidate-table">
+                  <!-- populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- CONTACT UPDATE FORM -->
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom fw-semibold" style="color:var(--unicross-navy);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                class="bi bi-pencil-square me-2" viewBox="0 0 16 16">
+                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5
+                  0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0
+                  0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0
+                  0 .196-.12l6.813-6.814z"/>
+                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0
+                  1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5
+                  0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+              </svg>
+              Update Contact Details
+            </div>
+            <div class="card-body">
+              <p class="text-muted mb-3" style="font-size:0.9rem;">
+                Provide a valid email address and phone number. These will be used for
+                important registration communications.
+              </p>
+              <form id="form-contact" novalidate>
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                  <input
+                    type="email"
+                    id="email"
+                    class="form-control"
+                    placeholder="e.g. yourname@gmail.com"
+                    autocomplete="email"
+                  />
+                  <span class="field-error" id="email-error"></span>
+                </div>
+                <div class="mb-4">
+                  <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    class="form-control"
+                    placeholder="e.g. 08012345678"
+                    autocomplete="tel"
+                  />
+                  <span class="field-error" id="phone-error"></span>
+                </div>
+                <div class="alert alert-danger d-none py-2 mb-3" id="contact-error"
+                     role="alert" style="font-size:0.875rem;"></div>
+                <div class="d-grid">
+                  <button type="submit" class="btn btn-unicross-blue btn-lg">
+                    Proceed to Payment &rarr;
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Back link -->
+          <div class="mt-3 text-center">
+            <a href="index.html" class="text-secondary" style="font-size:0.875rem;">
+              &larr; Back to Home
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer text-center">
+    <div class="container">
+      <p class="mb-0">&copy; 2025 <span class="institution-name">University of Cross River State</span>. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    redirectIfNoSession('reg_no', 'index.html');
+
+    const candidate    = getSession('candidate') || {};
+    const regNo        = getSession('reg_no') || '—';
+    const candidateId  = candidate.id;
+
+    /* Guard: candidate must have an id to make the PATCH call */
+    if (!candidateId) {
+      const contactErr = document.getElementById('contact-error');
+      contactErr.textContent =
+        'Session data is incomplete. Please return to the home page and look up your JAMB number again.';
+      contactErr.classList.remove('d-none');
+      document.querySelector('[type="submit"]').disabled = true;
+    }
+
+    /* Populate read-only candidate table */
+    const rows = [
+      ['Full Name',     candidate.name       || '—'],
+      ['JAMB Reg No',   regNo],
+      ['Faculty',       candidate.faculty    || '—'],
+      ['Department',    candidate.department || '—'],
+      ['Programme',     candidate.programme  || '—'],
+      ['Date of Birth', candidate.dob        || '—']
+    ];
+
+    const tbody = document.getElementById('candidate-table');
+    rows.forEach(function ([label, value]) {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<th class="text-muted fw-normal ps-0" style="width:38%;font-size:0.875rem;">' + label + '</th>' +
+        '<td class="fw-semibold" style="font-size:0.875rem;">' + value + '</td>';
+      tbody.appendChild(tr);
+    });
+
+    /* Pre-fill if returning from a later step */
+    const savedEmail = getSession('email');
+    const savedPhone = getSession('phone');
+    if (savedEmail) document.getElementById('email').value = savedEmail;
+    if (savedPhone) document.getElementById('phone').value = savedPhone;
+
+    /* Form validation & submission */
+    document.getElementById('form-contact').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const emailEl   = document.getElementById('email');
+      const phoneEl   = document.getElementById('phone');
+      const emailErr  = document.getElementById('email-error');
+      const phoneErr  = document.getElementById('phone-error');
+      const formErr   = document.getElementById('contact-error');
+      const submitBtn = this.querySelector('[type="submit"]');
+
+      const email   = emailEl.value.trim();
+      const phone   = phoneEl.value.trim();
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      const phoneOk = /^[0-9+\s\-]{7,15}$/.test(phone);
+
+      /* Clear all previous errors before re-validating */
+      emailErr.textContent = '';
+      emailErr.classList.remove('visible');
+      phoneErr.textContent = '';
+      phoneErr.classList.remove('visible');
+      formErr.classList.add('d-none');
+
+      let valid = true;
+
+      if (!emailOk) {
+        emailErr.textContent = 'Enter a valid email address.';
+        emailErr.classList.add('visible');
+        if (valid) emailEl.focus();
+        valid = false;
+      }
+      if (!phoneOk) {
+        phoneErr.textContent = 'Enter a valid phone number (7–15 digits).';
+        phoneErr.classList.add('visible');
+        if (valid) phoneEl.focus();
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
+        'Saving&hellip;';
+
+      apiFetch('/api/registration/' + candidateId + '/contact/', {
+        method: 'PATCH',
+        body: { email: email, phone: phone }
+      }).then(function (data) {
+        if (!data || !data.success) {
+          throw new Error((data && data.message) || 'Failed to save contact details. Please try again.');
+        }
+        saveSession('email', email);
+        saveSession('phone', phone);
+        window.location.href = 'payment.html';
+      }).catch(function (err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Proceed to Payment →';
+        formErr.textContent = err.message || 'Failed to save contact details. Please try again.';
+        formErr.classList.remove('d-none');
+      });
+    });
+
+    ['email', 'phone'].forEach(function (id) {
+      document.getElementById(id).addEventListener('input', function () {
+        document.getElementById(id + '-error').textContent = '';
+        document.getElementById(id + '-error').classList.remove('visible');
+        document.getElementById('contact-error').classList.add('d-none');
+      });
+    });
+
+    loadInstitution();
+  </script>
+</body>
+</html>

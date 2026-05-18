@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal — Registration Form</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Static sidebar ──────────────────────────── */
+    .reg-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 100vh;
+      background-color: var(--unicross-navy);
+      color: #fff;
+      padding: 1.25rem 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    /* Push all page content right of the sidebar */
+    .page-wrapper { margin-left: 260px; }
+
+    /* ── Main content area ────────────────────────── */
+    .reg-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem;
+    }
+    @media (max-width: 575.98px) {
+      .reg-inner { padding: 1rem 0.75rem; }
+    }
+
+    /* ── Mobile: hide sidebar, remove margin ─────── */
+    @media (max-width: 767.98px) {
+      .reg-sidebar  { display: none; }
+      .page-wrapper { margin-left: 0; }
+    }
+
+    /* ── Sidebar internals ───────────────────────── */
+    .sb-candidate {
+      margin-bottom: 1.25rem;
+    }
+    .sb-candidate-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #fff;
+      word-break: break-word;
+    }
+    .sb-candidate-reg {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 0.2rem;
+    }
+    .sb-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      margin: 0 0 1rem;
+    }
+    .sb-steps {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      flex: 1;
+    }
+    .sb-step {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0;
+    }
+    .sb-step + .sb-step {
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .sb-step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.4);
+      transition: background 0.2s, color 0.2s;
+    }
+    .sb-step.active    .sb-step-dot { background: var(--unicross-blue); color: #fff; }
+    .sb-step.completed .sb-step-dot { background: var(--unicross-success); color: #fff; }
+    .sb-step-label {
+      font-size: 0.83rem;
+      color: rgba(255,255,255,0.45);
+      transition: color 0.2s;
+    }
+    .sb-step.active    .sb-step-label { color: #fff; font-weight: 600; }
+    .sb-step.completed .sb-step-label { color: rgba(255,255,255,0.75); }
+
+    /* ── Clickable step states ───────────────────── */
+    .sb-step.active,
+    .sb-step.completed {
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .sb-step.active:hover,
+    .sb-step.completed:hover {
+      background: rgba(255,255,255,0.08);
+    }
+    .sb-step:not(.active):not(.completed) {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    /* ── Shake animation for pending steps ───────── */
+    @keyframes sb-shake {
+      0%, 100% { transform: translateX(0); }
+      20%      { transform: translateX(-6px); }
+      50%      { transform: translateX(5px); }
+      80%      { transform: translateX(-4px); }
+    }
+    .sb-step.sb-shake { animation: sb-shake 0.35s ease; }
+
+    .sb-footer {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: auto;
+      padding-top: 1rem;
+    }
+
+    /* ── Step indicator (top horizontal) ────────── */
+    .step-indicator {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 68px;
+    }
+    .step-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background-color: #dee2e6;
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+      transition: background-color 0.25s, color 0.25s;
+    }
+    .step-item.active    .step-circle { background-color: var(--unicross-navy); color: #fff; }
+    .step-item.completed .step-circle { background-color: #28a745; color: #fff; }
+    .step-label {
+      font-size: 0.72rem;
+      color: #6c757d;
+      font-weight: 500;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .step-item.active    .step-label { color: var(--unicross-navy); font-weight: 700; }
+    .step-item.completed .step-label { color: #28a745; font-weight: 600; }
+    .step-connector {
+      flex: 1;
+      height: 2px;
+      background-color: #dee2e6;
+      margin: 22px 4px 0;
+      transition: background-color 0.25s;
+    }
+    .step-connector.completed { background-color: #28a745; }
+
+    /* ── Step sections ───────────────────────────── */
+    .step-section { display: none; }
+    .step-section.active { display: block; }
+
+    /* ── Upload zones ────────────────────────────── */
+    .upload-zone {
+      border: 2px dashed #ced4da;
+      border-radius: 0.5rem;
+      padding: 1rem 1.25rem;
+      background-color: #f8f9fa;
+      transition: border-color 0.2s;
+    }
+    .upload-zone:focus-within { border-color: var(--unicross-blue); }
+    .upload-zone .upload-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--unicross-navy);
+      margin-bottom: 0.35rem;
+    }
+    .upload-zone .upload-hint {
+      font-size: 0.78rem;
+      color: #6c757d;
+      margin-bottom: 0.5rem;
+    }
+    #passport-preview {
+      display: none;
+      width: 110px;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 0.375rem;
+      border: 2px solid var(--unicross-blue);
+      margin-top: 0.75rem;
+    }
+    .file-ok {
+      font-size: 0.8rem;
+      color: var(--unicross-success);
+      margin-top: 0.25rem;
+    }
+
+    /* ── Results / SSCE tables ───────────────────── */
+    .results-card .card-header {
+      background-color: #fff;
+      border-bottom: 1px solid #dee2e6;
+      color: var(--unicross-navy);
+      font-weight: 600;
+    }
+    .results-card thead th {
+      font-size: 0.8rem;
+      background-color: #f1f3f5;
+      font-weight: 600;
+      color: #495057;
+    }
+    .results-card tbody td { vertical-align: middle; }
+
+    .utme-total-row { background-color: #eef4fc; }
+    #utme-total {
+      max-width: 88px;
+      font-weight: 700;
+      color: var(--unicross-navy);
+      background-color: #dce9f8;
+      text-align: center;
+      cursor: default;
+    }
+
+    .remove-ssce-row { font-size: 1rem; line-height: 1; }
+    #ssce-block-2 { display: none; }
+
+    td .field-error { font-size: 0.75rem; }
+    .is-invalid-cell { border-color: var(--unicross-danger) !important; }
+
+    /* Locked SSCE row */
+    .ssce-subject[disabled] {
+      background-color: #e9ecef;
+      color: #495057;
+      cursor: default;
+      opacity: 1;
+    }
+
+    /* Section sub-header inside card */
+    .card-section-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--unicross-navy);
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body class="page-wrapper">
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <img src="unicross_logo.jpg" height="60" alt="University Logo" class="header-logo institution-logo" />
+        <div class="header-divider"></div>
+        <div class="wordmark">
+          <div>
+            <span class="brand-main">UNICROSS</span>
+            <span class="brand-sub ms-2">PORTAL</span>
+          </div>
+          <div class="university-name institution-name">University of Cross River State</div>
+        </div>
+        <div class="header-session-label">2025/2026 Screening Registration</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- PAGE TITLE -->
+    <div class="page-title-bar">
+      <div class="container">
+        <h2>Registration Form</h2>
+        <p>Complete all four sections to submit your application</p>
+      </div>
+    </div>
+
+    <!-- Static sidebar -->
+    <aside class="reg-sidebar" id="reg-sidebar">
+      <div class="sb-candidate">
+        <div class="sb-candidate-name" id="sb-name">—</div>
+        <div class="sb-candidate-reg"  id="sb-reg">—</div>
+      </div>
+      <hr class="sb-divider" />
+      <ul class="sb-steps">
+        <li class="sb-step active" id="sb-step-1">
+          <div class="sb-step-dot">1</div>
+          <div class="sb-step-label">Biodata</div>
+        </li>
+        <li class="sb-step" id="sb-step-2">
+          <div class="sb-step-dot">2</div>
+          <div class="sb-step-label">UTME Results</div>
+        </li>
+        <li class="sb-step" id="sb-step-3">
+          <div class="sb-step-dot">3</div>
+          <div class="sb-step-label">O&rsquo;Level Results</div>
+        </li>
+        <li class="sb-step" id="sb-step-4">
+          <div class="sb-step-dot">4</div>
+          <div class="sb-step-label">Documents</div>
+        </li>
+      </ul>
+      <div class="sb-footer">&#128190; Progress saved automatically</div>
+    </aside>
+
+    <!-- Main form content (full width) -->
+    <div class="reg-inner">
+
+          <!-- ─── STEP INDICATOR (horizontal) ─── -->
+          <div class="step-indicator mb-4">
+            <div class="step-item active" id="step-ind-1">
+              <div class="step-circle">1</div>
+              <div class="step-label">Biodata</div>
+            </div>
+            <div class="step-connector" id="conn-1-2"></div>
+            <div class="step-item" id="step-ind-2">
+              <div class="step-circle">2</div>
+              <div class="step-label">UTME</div>
+            </div>
+            <div class="step-connector" id="conn-2-3"></div>
+            <div class="step-item" id="step-ind-3">
+              <div class="step-circle">3</div>
+              <div class="step-label">O&rsquo;Level</div>
+            </div>
+            <div class="step-connector" id="conn-3-4"></div>
+            <div class="step-item" id="step-ind-4">
+              <div class="step-circle">4</div>
+              <div class="step-label">Documents</div>
+            </div>
+          </div>
+
+          <!-- ═══════════════════════════════════════
+               STEP 1 — BIODATA
+          ═══════════════════════════════════════ -->
+          <div class="step-section active" id="step-1">
+
+            <!-- Read-only candidate info -->
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-header bg-white border-bottom fw-semibold" style="color:var(--unicross-navy);">
+                &#128100; Candidate Information
+              </div>
+              <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                  <tbody id="candidate-table"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Editable contact & personal fields -->
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-header bg-white border-bottom fw-semibold" style="color:var(--unicross-navy);">
+                &#9998;&#xFE0E; Contact &amp; Personal Details
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" style="font-size:0.875rem;">
+                      Email Address <span class="text-danger">*</span>
+                    </label>
+                    <input type="email" id="bio-email" class="form-control"
+                           placeholder="e.g. john@example.com" autocomplete="email" />
+                    <span class="field-error" id="bio-email-error"></span>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" style="font-size:0.875rem;">
+                      Phone Number <span class="text-danger">*</span>
+                    </label>
+                    <input type="tel" id="bio-phone" class="form-control"
+                           placeholder="e.g. 08012345678" autocomplete="tel" />
+                    <span class="field-error" id="bio-phone-error"></span>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" style="font-size:0.875rem;">
+                      Home Address <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="bio-address" class="form-control"
+                           placeholder="e.g. 12 Main Street, Calabar" autocomplete="street-address" />
+                    <span class="field-error" id="bio-address-error"></span>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" style="font-size:0.875rem;">
+                      Date of Birth <span class="text-danger">*</span>
+                    </label>
+                    <input type="date" id="bio-dob" class="form-control" />
+                    <span class="field-error" id="bio-dob-error"></span>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" style="font-size:0.875rem;">
+                      Blood Group <span class="text-danger">*</span>
+                    </label>
+                    <select id="bio-blood" class="form-select">
+                      <option value="">— Select —</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A&minus;</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B&minus;</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB&minus;</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O&minus;</option>
+                    </select>
+                    <span class="field-error" id="bio-blood-error"></span>
+                  </div>
+                </div>
+
+                <!-- Parent / Guardian sub-section -->
+                <div class="card-section-header mt-4">Parent / Guardian Information</div>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" style="font-size:0.875rem;">
+                      Parent / Guardian Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="bio-guardian-name" class="form-control"
+                           placeholder="e.g. Mrs. Ada Okoro" />
+                    <span class="field-error" id="bio-guardian-name-error"></span>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" style="font-size:0.875rem;">
+                      Parent / Guardian Phone <span class="text-danger">*</span>
+                    </label>
+                    <input type="tel" id="bio-guardian-phone" class="form-control"
+                           placeholder="e.g. 08012345678" />
+                    <span class="field-error" id="bio-guardian-phone-error"></span>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" style="font-size:0.875rem;">
+                      Parent / Guardian Address <span class="text-danger">*</span>
+                    </label>
+                    <textarea id="bio-guardian-address" class="form-control" rows="2"
+                              placeholder="e.g. 5 Murtala Muhammed Way, Calabar"></textarea>
+                    <span class="field-error" id="bio-guardian-address-error"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="step1-error-alert" class="alert alert-danger d-none mb-3" role="alert">
+              <strong>&#9888; Please fix the following:</strong>
+              <ul id="step1-error-list" class="mb-0 mt-2 ps-3" style="font-size:0.9rem;"></ul>
+            </div>
+
+            <div class="d-grid mb-4">
+              <button type="button" class="btn btn-unicross-blue btn-lg" id="btn-step1-continue">
+                Save &amp; Continue &rarr;
+              </button>
+            </div>
+          </div>
+
+          <!-- ═══════════════════════════════════════
+               STEP 2 — UTME / JAMB RESULTS
+          ═══════════════════════════════════════ -->
+          <div class="step-section" id="step-2">
+            <div class="card border-0 shadow-sm mb-3 results-card">
+              <div class="card-header">
+                &#127891; UTME / JAMB Results
+              </div>
+              <div class="card-body">
+                <p class="text-muted mb-3" style="font-size:0.875rem;">
+                  Enter your JAMB subject scores exactly as shown on your result slip.
+                  Subject names are editable if your subjects differ.
+                </p>
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle mb-2">
+                    <thead>
+                      <tr>
+                        <th style="width:58%;">Subject</th>
+                        <th style="width:28%;">Score (0–100)</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="utme-rows"></tbody>
+                    <tfoot>
+                      <tr class="utme-total-row">
+                        <td class="fw-semibold" style="font-size:0.875rem;">Aggregate / Total</td>
+                        <td>
+                          <input type="text" id="utme-total" class="form-control form-control-sm"
+                                 readonly value="0" title="Auto-calculated" />
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+                <span class="field-error" id="utme-error"></span>
+              </div>
+            </div>
+
+            <div id="step2-error-alert" class="alert alert-danger d-none mb-3" role="alert">
+              <strong>&#9888; Please fix the following:</strong>
+              <ul id="step2-error-list" class="mb-0 mt-2 ps-3" style="font-size:0.9rem;"></ul>
+            </div>
+
+            <div class="d-flex gap-2 mb-4">
+              <button type="button" class="btn btn-outline-secondary" id="btn-step2-back">
+                &larr; Back
+              </button>
+              <button type="button" class="btn btn-unicross-blue btn-lg flex-grow-1" id="btn-step2-continue">
+                Save &amp; Continue &rarr;
+              </button>
+            </div>
+          </div>
+
+          <!-- ═══════════════════════════════════════
+               STEP 3 — O'LEVEL (SSCE) RESULTS
+          ═══════════════════════════════════════ -->
+          <div class="step-section" id="step-3">
+            <div class="card border-0 shadow-sm mb-3 results-card">
+              <div class="card-header">
+                &#128196; O&rsquo;Level Results (WAEC / NECO)
+              </div>
+              <div class="card-body">
+
+                <!-- Number of sittings -->
+                <div class="mb-4">
+                  <label class="form-label fw-semibold" style="font-size:0.9rem;">
+                    Number of Sittings <span class="text-danger">*</span>
+                  </label>
+                  <div class="d-flex gap-4">
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="sittings" id="sit-one" value="1" checked />
+                      <label class="form-check-label" for="sit-one">1 Sitting</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="sittings" id="sit-two" value="2" />
+                      <label class="form-check-label" for="sit-two">2 Sittings</label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Sitting 1 -->
+                <div id="ssce-block-1">
+                  <h6 class="fw-semibold mb-3" style="color:var(--unicross-navy); font-size:0.9rem;">Sitting 1</h6>
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                      <label class="form-label" style="font-size:0.85rem;">Exam Type <span class="text-danger">*</span></label>
+                      <select id="ssce-type-1" class="form-select form-select-sm">
+                        <option value="">— Select —</option>
+                        <option value="WAEC">WAEC</option>
+                        <option value="NECO">NECO</option>
+                      </select>
+                      <span class="field-error" id="ssce-type-1-error">Select exam type.</span>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label" style="font-size:0.85rem;">Exam Year <span class="text-danger">*</span></label>
+                      <input type="text" id="ssce-year-1" class="form-control form-control-sm"
+                             placeholder="e.g. 2024" maxlength="4" />
+                      <span class="field-error" id="ssce-year-1-error">Enter exam year.</span>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label" style="font-size:0.85rem;">Exam Reg / Cert No <span class="text-danger">*</span></label>
+                      <input type="text" id="ssce-no-1" class="form-control form-control-sm"
+                             placeholder="e.g. 4130101001" />
+                      <span class="field-error" id="ssce-no-1-error">Enter your exam number.</span>
+                    </div>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-2">
+                      <thead>
+                        <tr>
+                          <th>Subject</th>
+                          <th style="width:110px;">Grade</th>
+                          <th style="width:36px;"></th>
+                        </tr>
+                      </thead>
+                      <tbody id="ssce-tbody-1"></tbody>
+                    </table>
+                  </div>
+                  <div class="d-flex align-items-center gap-3 mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary add-ssce-row"
+                            data-tbody="ssce-tbody-1" data-count="ssce-count-1">
+                      + Add Subject
+                    </button>
+                    <span class="text-muted" style="font-size:0.78rem;" id="ssce-count-1">9 subjects</span>
+                  </div>
+                  <p class="mb-1" style="font-size:0.78rem; color:#6c757d;">
+                    &#9432; Minimum 5 subjects including <strong>English Language</strong> and <strong>Mathematics</strong>.
+                    Select from the dropdown list.
+                  </p>
+                  <span class="field-error" id="ssce-min-error-1">At least 5 subjects with grades are required.</span>
+                </div>
+
+                <!-- Sitting 2 (hidden by default) -->
+                <div id="ssce-block-2">
+                  <hr class="my-4" />
+                  <h6 class="fw-semibold mb-3" style="color:var(--unicross-navy); font-size:0.9rem;">Sitting 2</h6>
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                      <label class="form-label" style="font-size:0.85rem;">Exam Type <span class="text-danger">*</span></label>
+                      <select id="ssce-type-2" class="form-select form-select-sm">
+                        <option value="">— Select —</option>
+                        <option value="WAEC">WAEC</option>
+                        <option value="NECO">NECO</option>
+                      </select>
+                      <span class="field-error" id="ssce-type-2-error">Select exam type.</span>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label" style="font-size:0.85rem;">Exam Year <span class="text-danger">*</span></label>
+                      <input type="text" id="ssce-year-2" class="form-control form-control-sm"
+                             placeholder="e.g. 2023" maxlength="4" />
+                      <span class="field-error" id="ssce-year-2-error">Enter exam year.</span>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label" style="font-size:0.85rem;">Exam Reg / Cert No <span class="text-danger">*</span></label>
+                      <input type="text" id="ssce-no-2" class="form-control form-control-sm"
+                             placeholder="e.g. 4130101001" />
+                      <span class="field-error" id="ssce-no-2-error">Enter your exam number.</span>
+                    </div>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-2">
+                      <thead>
+                        <tr>
+                          <th>Subject</th>
+                          <th style="width:110px;">Grade</th>
+                          <th style="width:36px;"></th>
+                        </tr>
+                      </thead>
+                      <tbody id="ssce-tbody-2"></tbody>
+                    </table>
+                  </div>
+                  <div class="d-flex align-items-center gap-3 mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary add-ssce-row"
+                            data-tbody="ssce-tbody-2" data-count="ssce-count-2">
+                      + Add Subject
+                    </button>
+                    <span class="text-muted" style="font-size:0.78rem;" id="ssce-count-2">9 subjects</span>
+                  </div>
+                  <p class="mb-1" style="font-size:0.78rem; color:#6c757d;">
+                    &#9432; Minimum 5 subjects including <strong>English Language</strong> and <strong>Mathematics</strong>.
+                    Select from the dropdown list.
+                  </p>
+                  <span class="field-error" id="ssce-min-error-2">At least 5 subjects with grades are required.</span>
+                </div>
+
+              </div>
+            </div>
+
+            <div id="step3-error-alert" class="alert alert-danger d-none mb-3" role="alert">
+              <strong>&#9888; Please fix the following:</strong>
+              <ul id="step3-error-list" class="mb-0 mt-2 ps-3" style="font-size:0.9rem;"></ul>
+            </div>
+
+            <div class="d-flex gap-2 mb-4">
+              <button type="button" class="btn btn-outline-secondary" id="btn-step3-back">
+                &larr; Back
+              </button>
+              <button type="button" class="btn btn-unicross-blue btn-lg flex-grow-1" id="btn-step3-continue">
+                Save &amp; Continue &rarr;
+              </button>
+            </div>
+          </div>
+
+          <!-- ═══════════════════════════════════════
+               STEP 4 — DOCUMENT UPLOADS
+          ═══════════════════════════════════════ -->
+          <div class="step-section" id="step-4">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-header bg-white border-bottom fw-semibold" style="color:var(--unicross-navy);">
+                &#128247; Document Uploads
+              </div>
+              <div class="card-body">
+
+                <!-- Passport Photo -->
+                <div class="upload-zone mb-3">
+                  <div class="upload-label">Passport Photograph <span class="text-danger">*</span></div>
+                  <div class="upload-hint">Image only (JPG, PNG, GIF). Maximum size: 200 KB. White background preferred.</div>
+                  <input type="file" id="passport" class="form-control form-control-sm"
+                         accept="image/jpeg,image/png,image/gif" />
+                  <span class="field-error" id="passport-error"></span>
+                  <span class="file-ok d-none" id="passport-ok">&#10003; File accepted</span>
+                  <div class="d-none" id="passport-optimise-note"
+                       style="font-size:0.78rem;color:#6c757d;margin-top:0.25rem;">
+                    &#128247; Image automatically optimised for upload
+                  </div>
+                  <div><img id="passport-preview" src="#" alt="Passport preview" /></div>
+                </div>
+
+                <!-- WAEC/NECO Result -->
+                <div class="upload-zone mb-3">
+                  <div class="upload-label">WAEC / NECO Result <span class="text-danger">*</span></div>
+                  <div class="upload-hint">Image (JPG, PNG) or PDF. Maximum size: 2 MB.</div>
+                  <input type="file" id="waec" class="form-control form-control-sm"
+                         accept="image/jpeg,image/png,application/pdf" />
+                  <span class="field-error" id="waec-error"></span>
+                  <span class="file-ok d-none" id="waec-ok">&#10003; File accepted</span>
+                </div>
+
+                <!-- JAMB Result Slip -->
+                <div class="upload-zone mb-0">
+                  <div class="upload-label">JAMB Result Slip <span class="text-danger">*</span></div>
+                  <div class="upload-hint">Image (JPG, PNG) or PDF. Maximum size: 2 MB.</div>
+                  <input type="file" id="jamb-slip" class="form-control form-control-sm"
+                         accept="image/jpeg,image/png,application/pdf" />
+                  <span class="field-error" id="jamb-slip-error"></span>
+                  <span class="file-ok d-none" id="jamb-slip-ok">&#10003; File accepted</span>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="alert alert-warning d-flex gap-2 align-items-start mb-3" role="alert">
+              <span style="font-size:1rem; flex-shrink:0;">&#9888;</span>
+              <div style="font-size:0.875rem;">
+                <strong>Important:</strong> Once submitted, your application is locked.
+                You cannot change results, grades, or uploaded documents. Review everything carefully.
+              </div>
+            </div>
+
+            <!-- Validation error summary -->
+            <div id="submit-error-alert" class="alert alert-danger d-none mb-3" role="alert">
+              <strong>&#9888; Please fix the following before submitting:</strong>
+              <ul id="submit-error-list" class="mb-0 mt-2 ps-3" style="font-size:0.9rem;"></ul>
+            </div>
+
+            <div class="d-flex gap-2 mb-4">
+              <button type="button" class="btn btn-outline-secondary" id="btn-step4-back">
+                &larr; Back
+              </button>
+              <button type="button" id="btn-preview" class="btn btn-unicross-blue btn-lg flex-grow-1">
+                Preview &amp; Submit &rarr;
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-1 text-center">
+            <a href="index.html" class="text-secondary" style="font-size:0.875rem;">&larr; Return to Home</a>
+          </div>
+
+    </div><!-- /.reg-inner -->
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer text-center">
+    <div class="container">
+      <p class="mb-0">&copy; 2025 <span class="institution-name">University of Cross River State</span>. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    /* ─── localStorage helpers (ucrs_reg_ prefix) ──── */
+    var REG = 'ucrs_reg_';
+    function saveReg(key, val) {
+      try {
+        localStorage.setItem(REG + key,
+          (val !== null && typeof val === 'object') ? JSON.stringify(val) : String(val));
+      } catch (e) {}
+    }
+    function getReg(key) {
+      try {
+        var raw = localStorage.getItem(REG + key);
+        if (raw === null) return null;
+        try { return JSON.parse(raw); } catch (e) { return raw; }
+      } catch (e) { return null; }
+    }
+    function clearAllReg() {
+      try {
+        Object.keys(localStorage)
+          .filter(function (k) { return k.indexOf(REG) === 0; })
+          .forEach(function (k) { localStorage.removeItem(k); });
+      } catch (e) {}
+    }
+
+    /* ─── Auth (still from sessionStorage) ─────────── */
+    redirectIfNoSession('epin', 'index.html');
+    var candidate = getSession('candidate') || getReg('candidate');
+    var regNo     = getSession('reg_no')    || getReg('reg_no') || '';
+    var epin      = getSession('epin')      || '';
+
+    /* Persist auth data to localStorage so form can resume after re-login */
+    if (candidate) saveReg('candidate', candidate);
+    if (regNo)     saveReg('reg_no',    regNo);
+
+    /* ═══════════════════════════════════════════════
+       STEP MANAGEMENT
+    ═══════════════════════════════════════════════ */
+    var currentStep = 1;
+    var TOTAL_STEPS = 4;
+
+    function updateStepIndicator(n) {
+      for (var i = 1; i <= TOTAL_STEPS; i++) {
+        var ind    = document.getElementById('step-ind-' + i);
+        var circle = ind.querySelector('.step-circle');
+        ind.classList.remove('active', 'completed');
+        if (i < n) {
+          ind.classList.add('completed');
+          circle.innerHTML = '&#10003;';
+        } else if (i === n) {
+          ind.classList.add('active');
+          circle.textContent = String(i);
+        } else {
+          circle.textContent = String(i);
+        }
+      }
+      for (var j = 1; j < TOTAL_STEPS; j++) {
+        var conn = document.getElementById('conn-' + j + '-' + (j + 1));
+        if (conn) conn.classList.toggle('completed', j < n);
+      }
+    }
+
+    function updateSidebar(n) {
+      var sbName = document.getElementById('sb-name');
+      var sbReg  = document.getElementById('sb-reg');
+      if (sbName) sbName.textContent = (candidate && candidate.name) ? candidate.name : '—';
+      if (sbReg)  sbReg.textContent  = regNo ? 'Reg No: ' + regNo : '—';
+
+      for (var i = 1; i <= TOTAL_STEPS; i++) {
+        var li  = document.getElementById('sb-step-' + i);
+        if (!li) continue;
+        var dot = li.querySelector('.sb-step-dot');
+        li.classList.remove('active', 'completed');
+        if (i < n) {
+          li.classList.add('completed');
+          dot.innerHTML = '&#10003;';
+        } else if (i === n) {
+          li.classList.add('active');
+          dot.textContent = String(i);
+        } else {
+          dot.textContent = String(i);
+        }
+      }
+    }
+
+    function goToStep(n) {
+      document.querySelectorAll('.step-section').forEach(function (s) {
+        s.classList.remove('active');
+      });
+      document.getElementById('step-' + n).classList.add('active');
+      currentStep = n;
+      updateStepIndicator(n);
+      updateSidebar(n);
+      saveReg('step', n);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ─── Sidebar step click handlers ───────────── */
+    for (var i = 1; i <= TOTAL_STEPS; i++) {
+      (function (stepNum) {
+        var li = document.getElementById('sb-step-' + stepNum);
+        if (!li) return;
+        li.addEventListener('click', function () {
+          if (stepNum <= currentStep) {
+            goToStep(stepNum);
+          } else {
+            li.classList.remove('sb-shake');
+            void li.offsetWidth; /* restart animation */
+            li.classList.add('sb-shake');
+            li.addEventListener('animationend', function () {
+              li.classList.remove('sb-shake');
+            }, { once: true });
+          }
+        });
+      }(i));
+    }
+
+    /* ═══════════════════════════════════════════════
+       STEP 1 — BIODATA
+    ═══════════════════════════════════════════════ */
+
+    /* Read-only candidate info table */
+    (function buildCandidateTable() {
+      var c = candidate || {};
+      var rows = [
+        ['Full Name',       c.name       || '—'],
+        ['Reg No',          regNo        || '—'],
+        ['Faculty',         c.faculty    || '—'],
+        ['Department',      c.department || '—'],
+        ['Programme',       c.programme  || '—'],
+        ['State of Origin', c.state_of_origin || c.state || '—'],
+        ['LGA',             c.lga        || '—'],
+        ['Gender',          c.gender     || '—'],
+        ['E-Pin',           epin         || '—']
+      ];
+      var tbody = document.getElementById('candidate-table');
+      rows.forEach(function (row) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<th class="text-muted fw-normal ps-0" style="width:36%;font-size:0.875rem;">' + row[0] + '</th>' +
+          '<td class="fw-semibold" style="font-size:0.875rem;">' + row[1] + '</td>';
+        tbody.appendChild(tr);
+      });
+    }());
+
+    /* Restore biodata from localStorage */
+    (function restoreBiodata() {
+      var bio = getReg('biodata');
+      if (!bio) return;
+      var fields = {
+        'bio-email':            'email',
+        'bio-phone':            'phone',
+        'bio-address':          'address',
+        'bio-dob':              'dob',
+        'bio-blood':            'blood',
+        'bio-guardian-name':    'guardianName',
+        'bio-guardian-phone':   'guardianPhone',
+        'bio-guardian-address': 'guardianAddress'
+      };
+      Object.keys(fields).forEach(function (id) {
+        var el  = document.getElementById(id);
+        var val = bio[fields[id]];
+        if (el && val) el.value = val;
+      });
+    }());
+
+    function showFieldError(id, msg) {
+      var el = document.getElementById(id);
+      if (el) { el.textContent = msg; el.classList.add('visible'); }
+    }
+    function clearFieldError(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.remove('visible');
+    }
+
+    document.getElementById('btn-step1-continue').addEventListener('click', function () {
+      var email           = document.getElementById('bio-email').value.trim();
+      var phone           = document.getElementById('bio-phone').value.trim();
+      var address         = document.getElementById('bio-address').value.trim();
+      var dob             = document.getElementById('bio-dob').value;
+      var blood           = document.getElementById('bio-blood').value;
+      var guardianName    = document.getElementById('bio-guardian-name').value.trim();
+      var guardianPhone   = document.getElementById('bio-guardian-phone').value.trim();
+      var guardianAddress = document.getElementById('bio-guardian-address').value.trim();
+      var errors = [];
+
+      ['bio-email-error','bio-phone-error','bio-address-error',
+       'bio-dob-error','bio-blood-error',
+       'bio-guardian-name-error','bio-guardian-phone-error','bio-guardian-address-error'
+      ].forEach(clearFieldError);
+
+      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        showFieldError('bio-email-error', 'Enter a valid email address.');
+        errors.push('A valid email address is required.');
+      }
+      if (!phone || phone.replace(/[\s\-+]/g, '').length < 7) {
+        showFieldError('bio-phone-error', 'Enter a valid phone number.');
+        errors.push('Phone number is required.');
+      }
+      if (!address) {
+        showFieldError('bio-address-error', 'Enter your home address.');
+        errors.push('Home address is required.');
+      }
+      if (!dob) {
+        showFieldError('bio-dob-error', 'Select your date of birth.');
+        errors.push('Date of birth is required.');
+      }
+      if (!blood) {
+        showFieldError('bio-blood-error', 'Select your blood group.');
+        errors.push('Blood group is required.');
+      }
+      if (!guardianName) {
+        showFieldError('bio-guardian-name-error', 'Enter parent/guardian name.');
+        errors.push('Parent/guardian name is required.');
+      }
+      if (!guardianPhone || guardianPhone.replace(/[\s\-+]/g, '').length < 7) {
+        showFieldError('bio-guardian-phone-error', 'Enter a valid phone number.');
+        errors.push('Parent/guardian phone is required.');
+      }
+      if (!guardianAddress) {
+        showFieldError('bio-guardian-address-error', 'Enter parent/guardian address.');
+        errors.push('Parent/guardian address is required.');
+      }
+
+      var errAlert = document.getElementById('step1-error-alert');
+      var errList  = document.getElementById('step1-error-list');
+      if (errors.length > 0) {
+        errList.innerHTML = errors.map(function (m) { return '<li>' + m + '</li>'; }).join('');
+        errAlert.classList.remove('d-none');
+        errAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      errAlert.classList.add('d-none');
+      saveReg('biodata', {
+        email: email, phone: phone, address: address,
+        dob: dob, blood: blood,
+        guardianName: guardianName, guardianPhone: guardianPhone, guardianAddress: guardianAddress
+      });
+      goToStep(2);
+    });
+
+    /* ═══════════════════════════════════════════════
+       STEP 2 — UTME RESULTS
+    ═══════════════════════════════════════════════ */
+    var UTME_SUBJECTS = ['Use of English Language', 'Physics', 'Biology', 'Chemistry'];
+
+    function recalcUtmeTotal() {
+      var total = 0;
+      document.querySelectorAll('.utme-score').forEach(function (input) {
+        var v = parseInt(input.value, 10);
+        if (!isNaN(v)) total += v;
+      });
+      document.getElementById('utme-total').value = total;
+    }
+
+    (function buildUtmeRows() {
+      var tbody = document.getElementById('utme-rows');
+      var saved = getReg('utme') || [];
+      UTME_SUBJECTS.forEach(function (subject, i) {
+        var savedRow = saved[i] || {};
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td><input type="text" class="form-control form-control-sm utme-subject" value="' +
+            (savedRow.subject || subject) + '" /></td>' +
+          '<td><input type="number" class="form-control form-control-sm utme-score" min="0" max="100" placeholder="0"' +
+            (savedRow.score != null && savedRow.score !== '' ? ' value="' + savedRow.score + '"' : '') +
+          ' /></td>' +
+          '<td></td>';
+        tbody.appendChild(tr);
+      });
+      recalcUtmeTotal();
+    }());
+
+    document.getElementById('utme-rows').addEventListener('input', function (e) {
+      if (e.target.classList.contains('utme-score')) {
+        recalcUtmeTotal();
+        e.target.classList.remove('is-invalid-cell');
+      }
+      if (e.target.classList.contains('utme-subject')) {
+        e.target.classList.remove('is-invalid-cell');
+      }
+    });
+
+    function validateUtme() {
+      var valid = true;
+      clearFieldError('utme-error');
+      document.querySelectorAll('#utme-rows tr').forEach(function (tr) {
+        var subj  = tr.querySelector('.utme-subject');
+        var score = tr.querySelector('.utme-score');
+        var val   = parseInt(score.value, 10);
+        if (!subj.value.trim()) {
+          subj.classList.add('is-invalid-cell'); valid = false;
+        } else subj.classList.remove('is-invalid-cell');
+        if (isNaN(val) || val < 0 || val > 100) {
+          score.classList.add('is-invalid-cell'); valid = false;
+        } else score.classList.remove('is-invalid-cell');
+      });
+      if (!valid) showFieldError('utme-error', 'Please enter a subject name and a valid score (0–100) for every row.');
+      return valid;
+    }
+
+    function collectUtme() {
+      return Array.from(document.querySelectorAll('#utme-rows tr')).map(function (tr) {
+        return {
+          subject: tr.querySelector('.utme-subject').value.trim(),
+          score:   parseInt(tr.querySelector('.utme-score').value, 10) || 0
+        };
+      });
+    }
+
+    document.getElementById('btn-step2-back').addEventListener('click', function () { goToStep(1); });
+
+    document.getElementById('btn-step2-continue').addEventListener('click', function () {
+      var errAlert = document.getElementById('step2-error-alert');
+      var errList  = document.getElementById('step2-error-list');
+      if (!validateUtme()) {
+        errList.innerHTML = '<li>All 4 subject names and scores (0–100) are required.</li>';
+        errAlert.classList.remove('d-none');
+        errAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      errAlert.classList.add('d-none');
+      saveReg('utme', collectUtme());
+      goToStep(3);
+    });
+
+    /* ═══════════════════════════════════════════════
+       STEP 3 — O'LEVEL (SSCE) RESULTS
+    ═══════════════════════════════════════════════ */
+    var SSCE_DEFAULTS = [
+      'Mathematics', 'English Language', 'Biology', 'Chemistry', 'Physics',
+      'Geography', 'Civic Education', 'Economics', 'Further Mathematics'
+    ];
+    var SSCE_SUBJECTS = [
+      'Agricultural Science','Animal Husbandry','Applied Electricity','Arabic Language',
+      'Auto Mechanics','Basic Electricity','Biology','Book Keeping','Building Construction',
+      'Building Drawing','Business Management','Catering Craft Practice','Chemistry',
+      'Christian Religious Studies','Civic Education','Clothing and Textiles','Commerce',
+      'Computer Studies','Cosmetology','Data Processing','Drawing and Painting',
+      'Dyeing and Bleaching','Economics','Electrical Installation and Maintenance',
+      'English Language','Environmental Management','Estate Management',
+      'Financial Accounting','Fine Art','Food and Nutrition','French Language',
+      'Furniture Making','Further Mathematics','Garment Making','Geography',
+      'German Language','Government','Graphic Design','Hausa Language','Health Education',
+      'History','Home Economics','Home Management','Igbo Language','Insurance',
+      'International Relations','Introduction to Building Construction',
+      'Islamic Religious Studies','Leather Work','Literature-in-English','Marketing',
+      'Mathematics','Metal Work','Motor Vehicle Mechanics','Music',
+      'Nutrition and Food Science','Office Practice','Physical Education','Physics',
+      'Plumbing and Pipe Fitting','Principles of Cost Accounting','Printing Craft',
+      'Radio TV and Electronics Work','Salesmanship','Security Education','Social Studies',
+      'Spanish Language','Store Management','Surveying and Geoinformatics',
+      'Technical Drawing','Textiles','Tourism','Toy Making','Trade Economics',
+      'Typewriting','Visual Art','Welding and Fabrication Engineering','Woodwork',
+      'Yoruba Language','Boat Building','Oral English'
+    ];
+    var GRADES       = ['A1', 'B2', 'B3', 'C4', 'C5', 'C6', 'D7', 'E8', 'F9'];
+    var MAX_SSCE_ROWS = 14;
+
+    function gradeSelectEl() {
+      var sel = document.createElement('select');
+      sel.className = 'form-select form-select-sm ssce-grade';
+      sel.innerHTML = '<option value="">—</option>' +
+        GRADES.map(function (g) { return '<option value="' + g + '">' + g + '</option>'; }).join('');
+      return sel;
+    }
+
+    function createSsceRow(subject, tbodyId, countId, removable, locked) {
+      var tr            = document.createElement('tr');
+      var subjectSelect = document.createElement('select');
+      subjectSelect.className = 'form-select form-select-sm ssce-subject';
+
+      if (!locked) {
+        var blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = '— Select Subject —';
+        subjectSelect.appendChild(blank);
+      }
+
+      SSCE_SUBJECTS.forEach(function (s) {
+        var opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        subjectSelect.appendChild(opt);
+      });
+
+      subjectSelect.value = subject || '';
+
+      if (locked) {
+        subjectSelect.disabled = true;
+        subjectSelect.title = 'This subject is required and cannot be changed';
+      }
+
+      var gradeSelect = gradeSelectEl();
+      var removeCell  = document.createElement('td');
+
+      if (removable && !locked) {
+        var btn = document.createElement('button');
+        btn.type      = 'button';
+        btn.className = 'btn btn-sm btn-link text-danger p-0 remove-ssce-row';
+        btn.innerHTML = '&#215;';
+        btn.title     = 'Remove row';
+        btn.addEventListener('click', function () {
+          tr.parentElement.removeChild(tr);
+          updateSsceCount(tbodyId, countId);
+        });
+        removeCell.appendChild(btn);
+      }
+
+      var td1 = document.createElement('td'); td1.appendChild(subjectSelect);
+      var td2 = document.createElement('td'); td2.appendChild(gradeSelect);
+      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(removeCell);
+      return tr;
+    }
+
+    function updateSsceCount(tbodyId, countId) {
+      var n = document.getElementById(tbodyId).querySelectorAll('tr').length;
+      document.getElementById(countId).textContent = n + ' subject' + (n !== 1 ? 's' : '');
+    }
+
+    function initSsceTbody(tbodyId, countId) {
+      var tbody = document.getElementById(tbodyId);
+      SSCE_DEFAULTS.forEach(function (subject, i) {
+        /* First two (Mathematics, English Language) are locked */
+        var locked = i < 2;
+        tbody.appendChild(createSsceRow(subject, tbodyId, countId, true, locked));
+      });
+      updateSsceCount(tbodyId, countId);
+    }
+
+    initSsceTbody('ssce-tbody-1', 'ssce-count-1');
+    initSsceTbody('ssce-tbody-2', 'ssce-count-2');
+
+    /* Restore SSCE data from localStorage */
+    (function restoreSsce() {
+      var saved = getReg('ssce');
+      if (!saved || !saved.length) return;
+      saved.forEach(function (block) {
+        var num    = block.sitting;
+        var typeEl = document.getElementById('ssce-type-' + num);
+        var yearEl = document.getElementById('ssce-year-' + num);
+        var noEl   = document.getElementById('ssce-no-'   + num);
+        if (typeEl) typeEl.value = block.examType || '';
+        if (yearEl) yearEl.value = block.examYear || '';
+        if (noEl)   noEl.value   = block.examNo   || '';
+
+        if (num === 2) {
+          document.getElementById('ssce-block-2').style.display = 'block';
+          document.getElementById('sit-two').checked = true;
+        }
+
+        var tbody    = document.getElementById('ssce-tbody-' + num);
+        var rows     = tbody.querySelectorAll('tr');
+        var subjects = block.subjects || [];
+        subjects.forEach(function (subj, i) {
+          var row = rows[i];
+          if (!row) {
+            row = createSsceRow('', 'ssce-tbody-' + num, 'ssce-count-' + num, true, false);
+            tbody.appendChild(row);
+            updateSsceCount('ssce-tbody-' + num, 'ssce-count-' + num);
+          }
+          var subjectEl   = row.querySelector('.ssce-subject');
+          var gradeSelect = row.querySelector('.ssce-grade');
+          if (subjectEl && !subjectEl.disabled) subjectEl.value = subj.subject || '';
+          if (gradeSelect) gradeSelect.value = subj.grade || '';
+        });
+      });
+    }());
+
+    document.querySelectorAll('.add-ssce-row').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var tbodyId = btn.dataset.tbody;
+        var countId = btn.dataset.count;
+        var tbody   = document.getElementById(tbodyId);
+        if (tbody.querySelectorAll('tr').length >= MAX_SSCE_ROWS) {
+          btn.textContent = 'Maximum ' + MAX_SSCE_ROWS + ' subjects reached';
+          btn.disabled = true;
+          return;
+        }
+        tbody.appendChild(createSsceRow('', tbodyId, countId, true, false));
+        updateSsceCount(tbodyId, countId);
+      });
+    });
+
+    document.querySelectorAll('input[name="sittings"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        document.getElementById('ssce-block-2').style.display =
+          this.value === '2' ? 'block' : 'none';
+      });
+    });
+
+    function validateSsceBlock(num) {
+      var valid  = true;
+      var typeEl = document.getElementById('ssce-type-' + num);
+      var yearEl = document.getElementById('ssce-year-' + num);
+      var noEl   = document.getElementById('ssce-no-'   + num);
+
+      if (!typeEl.value) {
+        showFieldError('ssce-type-' + num + '-error', 'Select exam type.');
+        typeEl.classList.add('is-invalid-cell'); valid = false;
+      } else { clearFieldError('ssce-type-' + num + '-error'); typeEl.classList.remove('is-invalid-cell'); }
+
+      if (!yearEl.value.trim() || !/^\d{4}$/.test(yearEl.value.trim())) {
+        showFieldError('ssce-year-' + num + '-error', 'Enter a valid 4-digit year.');
+        yearEl.classList.add('is-invalid-cell'); valid = false;
+      } else { clearFieldError('ssce-year-' + num + '-error'); yearEl.classList.remove('is-invalid-cell'); }
+
+      if (!noEl.value.trim()) {
+        showFieldError('ssce-no-' + num + '-error', 'Enter your exam number.');
+        noEl.classList.add('is-invalid-cell'); valid = false;
+      } else { clearFieldError('ssce-no-' + num + '-error'); noEl.classList.remove('is-invalid-cell'); }
+
+      var filled = Array.from(document.querySelectorAll('#ssce-tbody-' + num + ' tr'))
+        .filter(function (tr) {
+          return tr.querySelector('.ssce-subject').value.trim() &&
+                 tr.querySelector('.ssce-grade').value;
+        }).length;
+
+      if (filled < 5) {
+        showFieldError('ssce-min-error-' + num, 'At least 5 subjects with grades are required.');
+        valid = false;
+      } else clearFieldError('ssce-min-error-' + num);
+
+      return valid;
+    }
+
+    function collectSsceBlock(num) {
+      var subjects = Array.from(document.querySelectorAll('#ssce-tbody-' + num + ' tr'))
+        .reduce(function (acc, tr) {
+          var subj  = tr.querySelector('.ssce-subject').value.trim();
+          var grade = tr.querySelector('.ssce-grade').value;
+          if (subj && grade) acc.push({ subject: subj, grade: grade });
+          return acc;
+        }, []);
+      return {
+        sitting:  num,
+        examType: document.getElementById('ssce-type-' + num).value,
+        examYear: document.getElementById('ssce-year-' + num).value.trim(),
+        examNo:   document.getElementById('ssce-no-'   + num).value.trim(),
+        subjects: subjects
+      };
+    }
+
+    document.getElementById('btn-step3-back').addEventListener('click', function () { goToStep(2); });
+
+    document.getElementById('btn-step3-continue').addEventListener('click', function () {
+      var errAlert = document.getElementById('step3-error-alert');
+      var errList  = document.getElementById('step3-error-list');
+      var errors   = [];
+      var twoSit   = document.querySelector('input[name="sittings"]:checked').value === '2';
+
+      if (!validateSsceBlock(1)) {
+        errors.push('Sitting 1: exam type, year, exam number, and at least 5 subject grades are required.');
+      }
+      if (twoSit && !validateSsceBlock(2)) {
+        errors.push('Sitting 2: exam type, year, exam number, and at least 5 subject grades are required.');
+      }
+
+      if (errors.length > 0) {
+        errList.innerHTML = errors.map(function (m) { return '<li>' + m + '</li>'; }).join('');
+        errAlert.classList.remove('d-none');
+        errAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      errAlert.classList.add('d-none');
+      var ssceResults = [collectSsceBlock(1)];
+      if (twoSit) ssceResults.push(collectSsceBlock(2));
+      saveReg('ssce', ssceResults);
+      goToStep(4);
+    });
+
+    /* ═══════════════════════════════════════════════
+       STEP 4 — DOCUMENT UPLOADS
+    ═══════════════════════════════════════════════ */
+    var MAX_PASSPORT = 200 * 1024;
+    var MAX_DOC      = 2 * 1024 * 1024;
+
+    function validateFile(inputId, maxBytes, errorId, okId) {
+      var input = document.getElementById(inputId);
+      var errEl = document.getElementById(errorId);
+      var okEl  = document.getElementById(okId);
+      var file  = input.files[0];
+      errEl.classList.remove('visible');
+      okEl.classList.add('d-none');
+      if (!file) return false;
+      if (file.size > maxBytes) {
+        var limit = maxBytes >= 1048576
+          ? (maxBytes / 1048576).toFixed(0) + ' MB'
+          : (maxBytes / 1024).toFixed(0) + ' KB';
+        errEl.textContent = 'File too large. Maximum size is ' + limit + '.';
+        errEl.classList.add('visible');
+        input.value = '';
+        return false;
+      }
+      okEl.classList.remove('d-none');
+      return true;
+    }
+
+    var compressedPassportBlob = null;
+
+    function compressPassport(file, onDone) {
+      var MAX_DIM  = 800;
+      var qualities = [0.7, 0.5, 0.3];
+      var reader   = new FileReader();
+      reader.onload = function (e) {
+        var img = new Image();
+        img.onload = function () {
+          var w = img.width;
+          var h = img.height;
+          if (w > MAX_DIM || h > MAX_DIM) {
+            if (w >= h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+            else        { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+          }
+          var canvas = document.createElement('canvas');
+          canvas.width  = w;
+          canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+          function tryQ(qi) {
+            canvas.toBlob(function (blob) {
+              if (blob.size <= MAX_PASSPORT || qi >= qualities.length - 1) {
+                onDone(blob, blob.size > MAX_PASSPORT);
+              } else {
+                tryQ(qi + 1);
+              }
+            }, 'image/jpeg', qualities[qi]);
+          }
+          tryQ(0);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    document.getElementById('passport').addEventListener('change', function () {
+      var file    = this.files[0];
+      var preview = document.getElementById('passport-preview');
+      var errEl   = document.getElementById('passport-error');
+      var okEl    = document.getElementById('passport-ok');
+      var noteEl  = document.getElementById('passport-optimise-note');
+
+      preview.style.display = 'none';
+      errEl.classList.remove('visible');
+      okEl.classList.add('d-none');
+      noteEl.classList.add('d-none');
+      compressedPassportBlob = null;
+
+      if (!file) return;
+
+      compressPassport(file, function (blob, stillOver) {
+        compressedPassportBlob = blob;
+
+        if (stillOver) {
+          errEl.textContent = 'Image is too large even after compression. Please choose a smaller photo.';
+          errEl.classList.add('visible');
+          compressedPassportBlob = null;
+          return;
+        }
+
+        okEl.classList.remove('d-none');
+        if (blob.size < file.size) noteEl.classList.remove('d-none');
+
+        var url = URL.createObjectURL(blob);
+        preview.src = url;
+        preview.style.display = 'block';
+        preview.onload = function () { URL.revokeObjectURL(url); };
+      });
+    });
+    document.getElementById('waec').addEventListener('change', function () {
+      validateFile('waec', MAX_DOC, 'waec-error', 'waec-ok');
+    });
+    document.getElementById('jamb-slip').addEventListener('change', function () {
+      validateFile('jamb-slip', MAX_DOC, 'jamb-slip-error', 'jamb-slip-ok');
+    });
+
+    document.getElementById('btn-step4-back').addEventListener('click', function () { goToStep(3); });
+
+    /* ── Preview & Submit flow ───────────────────── */
+    var submitErrAlert = document.getElementById('submit-error-alert');
+    var submitErrList  = document.getElementById('submit-error-list');
+
+    function showSubmitErrors(messages) {
+      submitErrList.innerHTML = messages.map(function (m) { return '<li>' + m + '</li>'; }).join('');
+      submitErrAlert.classList.remove('d-none');
+      submitErrAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function clearSubmitErrors() {
+      submitErrAlert.classList.add('d-none');
+      submitErrList.innerHTML = '';
+    }
+
+    function readFileAsBase64(fileOrBlob) {
+      return new Promise(function (resolve, reject) {
+        var r = new FileReader();
+        r.onload = function (e) { resolve(e.target.result); };
+        r.onerror = reject;
+        r.readAsDataURL(fileOrBlob);
+      });
+    }
+
+    document.getElementById('btn-preview').addEventListener('click', function () {
+      clearSubmitErrors();
+      var errors        = [];
+      var passportInput = document.getElementById('passport');
+      var waecInput     = document.getElementById('waec');
+      var jambSlipInput = document.getElementById('jamb-slip');
+      var waecErrEl     = document.getElementById('waec-error');
+      var jambSlipErrEl = document.getElementById('jamb-slip-error');
+
+      if (!passportInput.files[0] || !compressedPassportBlob) {
+        showFieldError('passport-error', 'Please upload your passport photograph.');
+        errors.push('Passport photograph is required.');
+      }
+      if (!waecInput.files[0]) {
+        showFieldError('waec-error', 'Please upload your WAEC/NECO result.');
+        errors.push('WAEC/NECO result is required.');
+      } else if (waecErrEl.classList.contains('visible')) {
+        errors.push('WAEC/NECO result exceeds 2 MB — please select a smaller file.');
+      }
+      if (!jambSlipInput.files[0]) {
+        showFieldError('jamb-slip-error', 'Please upload your JAMB result slip.');
+        errors.push('JAMB result slip is required.');
+      } else if (jambSlipErrEl.classList.contains('visible')) {
+        errors.push('JAMB result slip exceeds 2 MB — please select a smaller file.');
+      }
+
+      if (errors.length > 0) { showSubmitErrors(errors); return; }
+
+      /* Save file metadata to localStorage for display on preview.html */
+      saveReg('files', {
+        passport:     passportInput.files[0].name,
+        passportSize: compressedPassportBlob.size,
+        waec:         waecInput.files[0].name,
+        waecSize:     waecInput.files[0].size,
+        jambSlip:     jambSlipInput.files[0].name,
+        jambSlipSize: jambSlipInput.files[0].size
+      });
+
+      var btn = this;
+      btn.disabled = true;
+      btn.innerHTML =
+        '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
+        'Preparing preview&hellip;';
+
+      /* Store file content in sessionStorage so preview.html can submit */
+      Promise.all([
+        readFileAsBase64(compressedPassportBlob),
+        readFileAsBase64(waecInput.files[0]),
+        readFileAsBase64(jambSlipInput.files[0])
+      ]).then(function (results) {
+        function tryStore(key, val) {
+          try { sessionStorage.setItem(key, val); } catch (e) {}
+        }
+        tryStore('ucrs_ss_passport',  results[0]);
+        tryStore('ucrs_ss_waec',      results[1]);
+        tryStore('ucrs_ss_jamb_slip', results[2]);
+        window.location.href = 'preview.html';
+      }).catch(function () {
+        window.location.href = 'preview.html';
+      });
+    });
+
+    /* ─── Restore saved step on page load ────────── */
+    (function restoreStep() {
+      var saved = parseInt(getReg('step'), 10);
+      if (saved && saved >= 1 && saved <= TOTAL_STEPS) {
+        goToStep(saved);
+      } else {
+        updateSidebar(1);
+      }
+    }());
+
+    loadInstitution();
+  </script>
+</body>
+</html>
