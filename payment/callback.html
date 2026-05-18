@@ -116,12 +116,42 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      var params        = new URLSearchParams(window.location.search);
-      var status        = (params.get('status')         || '').trim().toLowerCase();
-      var reference     = params.get('reference')       || params.get('trxref') || params.get('transaction_id') || '';
-      var trxref        = params.get('trxref')          || '';
-      var transactionId = params.get('transaction_id')  || '';
+      var MAX_REFRESHES = 2;
 
+      var params = new URLSearchParams(window.location.search);
+
+      /* Collect status from every param name Credo might send */
+      var rawStatus = (
+        params.get('status') ||
+        params.get('paymentStatus') ||
+        params.get('payment_status') ||
+        params.get('transaction_status') ||
+        ''
+      ).trim().toLowerCase();
+
+      /* Collect reference from every param name Credo might send */
+      var reference = (
+        params.get('reference') ||
+        params.get('trxref') ||
+        params.get('transaction_reference') ||
+        params.get('transaction_id') ||
+        ''
+      ).trim();
+
+      /* ── Determine outcome ── */
+      var isSuccess =
+        rawStatus === 'success' ||
+        rawStatus === 'completed' ||
+        rawStatus === '1' ||
+        /* Credo only sends reference on success — treat a valid UNICROSS- ref as success */
+        (!rawStatus && reference && reference.startsWith('UNICROSS-'));
+
+      var isFailed =
+        rawStatus === 'failed' ||
+        rawStatus === 'cancelled' ||
+        rawStatus === '0';
+
+      /* ── Helpers ── */
       function esc(str) {
         return String(str == null ? '' : str)
           .replace(/&/g, '&amp;')
@@ -130,42 +160,43 @@
           .replace(/"/g, '&quot;');
       }
 
-      function refBox(label, value) {
-        if (!value) return '';
+      function refBox() {
+        if (!reference) return '';
         return '<div class="ref-box">' +
-          '<div class="ref-label">' + esc(label) + '</div>' +
-          '<div class="ref-value">'  + esc(value) + '</div>' +
+          '<div class="ref-label">Transaction Reference</div>' +
+          '<div class="ref-value">' + esc(reference) + '</div>' +
         '</div>';
       }
 
       var container = document.getElementById('callback-content');
 
-      /* ── SUCCESS: explicit status=success OR trxref present (Credo sends trxref on success) ── */
-      if (status === 'success' || trxref) {
+      function showSuccess() {
+        sessionStorage.removeItem('callbackRefreshCount');
         container.innerHTML =
           '<div class="callback-icon success">&#10003;</div>' +
           '<h2 class="fw-bold mb-2" style="color:var(--unicross-success);">Payment Successful!</h2>' +
           '<p class="text-muted mb-0" style="font-size:0.95rem;">' +
-            'Your E-Pin will be sent to your registered email address shortly.' +
+            'Your E-Pin has been sent to your registered email address.' +
             ' Please check your inbox and spam folder.' +
           '</p>' +
-          refBox('Transaction Reference', reference) +
+          refBox() +
           '<div class="d-grid mt-4">' +
             '<a href="../index.html" class="btn btn-unicross-blue btn-lg">Login with E-Pin</a>' +
           '</div>' +
           '<p class="text-muted mt-3 mb-0" style="font-size:0.82rem;">' +
             'Use your JAMB registration number and the E-Pin sent to you to log in.' +
           '</p>';
+      }
 
-      /* ── FAILED / CANCELLED ── */
-      } else if (status === 'failed' || status === 'cancelled') {
+      function showFailed() {
+        sessionStorage.removeItem('callbackRefreshCount');
         container.innerHTML =
           '<div class="callback-icon failed">&#10005;</div>' +
           '<h2 class="fw-bold mb-2" style="color:var(--unicross-danger);">Payment Not Completed</h2>' +
           '<p class="text-muted mb-0" style="font-size:0.95rem;">' +
             'Your payment was not completed. No charge has been made to your account.' +
           '</p>' +
-          refBox('Transaction Reference', reference) +
+          refBox() +
           '<div class="d-grid mt-4">' +
             '<a href="../payment.html" class="btn btn-unicross-blue btn-lg">Try Again</a>' +
           '</div>' +
@@ -174,44 +205,67 @@
               '&larr; Return to Home' +
             '</a>' +
           '</div>';
+      }
 
-      /* ── PENDING / UNKNOWN — auto-refresh after 5 s ── */
+      /* ── Render based on outcome ── */
+      if (isSuccess) {
+        showSuccess();
+
+      } else if (isFailed) {
+        showFailed();
+
       } else {
-        container.innerHTML =
-          '<div class="callback-icon pending">' +
-            '<div class="pending-spinner"></div>' +
-          '</div>' +
-          '<h2 class="fw-bold mb-2" style="color:#856404;">Verifying Payment&hellip;</h2>' +
-          '<p class="text-muted mb-3" style="font-size:0.95rem;">' +
-            'Please wait while we confirm your payment status.' +
-          '</p>' +
-          '<p class="text-muted mb-4" style="font-size:0.875rem;">' +
-            'This page will refresh automatically in <span id="countdown">5</span> seconds.' +
-          '</p>' +
-          '<div class="d-grid">' +
-            '<button id="btn-check" class="btn btn-unicross-blue btn-lg">Check Status Now</button>' +
-          '</div>' +
-          refBox('Transaction Reference', reference);
+        /* Status still unknown — allow up to MAX_REFRESHES auto-refreshes,
+           then resolve: valid UNICROSS- reference → success, otherwise failed. */
+        var refreshCount = parseInt(sessionStorage.getItem('callbackRefreshCount') || '0', 10);
 
-        /* countdown + auto-refresh */
-        var seconds = 5;
-        var tick = setInterval(function () {
-          seconds -= 1;
-          var el = document.getElementById('countdown');
-          if (el) el.textContent = seconds;
-          if (seconds <= 0) {
-            clearInterval(tick);
-            window.location.reload();
+        if (refreshCount >= MAX_REFRESHES) {
+          /* Exhausted retries — decide now */
+          if (reference && reference.startsWith('UNICROSS-')) {
+            showSuccess();
+          } else {
+            showFailed();
           }
-        }, 1000);
+        } else {
+          /* Pending — show spinner and schedule next refresh */
+          sessionStorage.setItem('callbackRefreshCount', String(refreshCount + 1));
 
-        /* manual refresh button */
-        var btnCheck = document.getElementById('btn-check');
-        if (btnCheck) {
-          btnCheck.addEventListener('click', function () {
-            clearInterval(tick);
-            window.location.reload();
-          });
+          var waitSeconds = 3;
+          container.innerHTML =
+            '<div class="callback-icon pending">' +
+              '<div class="pending-spinner"></div>' +
+            '</div>' +
+            '<h2 class="fw-bold mb-2" style="color:#856404;">Verifying Payment&hellip;</h2>' +
+            '<p class="text-muted mb-3" style="font-size:0.95rem;">' +
+              'Please wait while we confirm your payment status.' +
+            '</p>' +
+            '<p class="text-muted mb-4" style="font-size:0.875rem;">' +
+              'Refreshing in <span id="countdown">' + waitSeconds + '</span> seconds&hellip;' +
+              ' (attempt ' + (refreshCount + 1) + ' of ' + MAX_REFRESHES + ')' +
+            '</p>' +
+            '<div class="d-grid">' +
+              '<button id="btn-check" class="btn btn-unicross-blue btn-lg">Check Now</button>' +
+            '</div>' +
+            refBox();
+
+          var seconds = waitSeconds;
+          var tick = setInterval(function () {
+            seconds -= 1;
+            var el = document.getElementById('countdown');
+            if (el) el.textContent = seconds;
+            if (seconds <= 0) {
+              clearInterval(tick);
+              window.location.reload();
+            }
+          }, 1000);
+
+          var btnCheck = document.getElementById('btn-check');
+          if (btnCheck) {
+            btnCheck.addEventListener('click', function () {
+              clearInterval(tick);
+              window.location.reload();
+            });
+          }
         }
       }
     });
