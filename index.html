@@ -221,6 +221,7 @@
   <script src="js/main.js"></script>
   <script>
     /* ── Clear any leftover session so returning users start fresh ── */
+    clearToken();
     var SESSION_KEYS = [
       'candidate_token', 'candidate', 'reg_no', 'email', 'phone', 'txn_ref', 'epin',
       'candidate_id', 'jamb_reg_no', 'candidate_name',
@@ -235,6 +236,21 @@
         .filter(function (k) { return k.indexOf('ucrs_reg_') === 0; })
         .forEach(function (k) { localStorage.removeItem(k); });
     } catch (e) {}
+
+    /* ── Pre-fill login form from ?prefill_jamb URL param ──
+       Callback page passes the JAMB number after successful
+       payment so the candidate can log in immediately.
+    ──────────────────────────────────────────────────────── */
+    (function prefillFromUrl() {
+      var prefill = new URLSearchParams(window.location.search).get('prefill_jamb');
+      if (!prefill) return;
+      var jambEl = document.getElementById('login-jamb');
+      if (jambEl) jambEl.value = prefill;
+      var epinEl = document.getElementById('login-epin');
+      if (epinEl) epinEl.focus();
+      var loginCard = document.querySelector('.reg-card:last-of-type');
+      if (loginCard) loginCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }());
 
     /* ── JAMB number format validation ───────────────
        Accepts 8–11 characters: digits with optional
@@ -293,7 +309,14 @@
         if (d.has_epin === true) {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Proceed to Purchase E-Pin';
-          setFieldError(jambError, 'You already have an E-Pin. Please login with your E-Pin on the right.');
+          /* Pre-fill the right-hand login form and scroll to it */
+          var loginJambEl = document.getElementById('login-jamb');
+          if (loginJambEl) loginJambEl.value = jamb;
+          var loginEpinEl = document.getElementById('login-epin');
+          if (loginEpinEl) loginEpinEl.focus();
+          var loginCard = document.getElementById('form-login');
+          if (loginCard) loginCard.closest('.reg-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setFieldError(jambError, 'You already have an E-Pin. Use the login form on the right to continue.');
           return;
         }
 
@@ -359,13 +382,12 @@
           throw new Error((data && data.message) || 'Invalid JAMB number or E-Pin. Please try again.');
         }
         var d = data.data || {};
-        if (d.token) saveSession('candidate_token', d.token);
+        if (d.token) saveToken(d.token);
         saveSession('candidate', d.candidate || d);
 
-        if (d.status === 1) {
-          /* Already registered — preview in read-only mode */
-          try { localStorage.setItem('ucrs_reg_submitted', 'true'); } catch (err) {}
-          window.location.href = 'preview.html';
+        var regStatus = (d.candidate || d).reg_status;
+        if (regStatus === 'COMPLETED') {
+          window.location.href = 'submitted.html';
         } else {
           window.location.href = 'register.html';
         }

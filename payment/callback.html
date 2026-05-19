@@ -19,6 +19,7 @@
     }
     .callback-icon.success { background-color: #d4edda; color: var(--unicross-success); }
     .callback-icon.failed  { background-color: #f8d7da; color: var(--unicross-danger);  }
+    .callback-icon.pending { background-color: #fff3cd; color: #856404; }
 
     .ref-box {
       background-color: #f4f6f9;
@@ -44,6 +45,17 @@
       color: var(--unicross-navy);
       word-break: break-all;
     }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .pending-spinner {
+      display: inline-block;
+      width: 2.75rem;
+      height: 2.75rem;
+      border: 4px solid #ffc107;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
   </style>
 </head>
 <body class="page-wrapper">
@@ -68,7 +80,6 @@
 
   <main class="page-content">
 
-    <!-- PAGE TITLE -->
     <div class="page-title-bar">
       <div class="container">
         <h2>Payment Status</h2>
@@ -80,7 +91,7 @@
       <div class="row justify-content-center">
         <div class="col-lg-5 col-md-7">
           <div id="callback-content" class="text-center">
-            <!-- populated by DOMContentLoaded -->
+            <!-- populated by script -->
           </div>
         </div>
       </div>
@@ -88,7 +99,6 @@
 
   </main>
 
-  <!-- FOOTER -->
   <footer class="site-footer text-center">
     <div class="container">
       <p class="mb-0">&copy; 2025 <span class="institution-name">University of Cross River State</span>. All rights reserved.</p>
@@ -98,116 +108,120 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      var params = new URLSearchParams(window.location.search);
-
-      /* Collect status from all param names Credo might send */
-      var rawStatus = (
-        params.get('status') ||
-        params.get('paymentStatus') ||
-        params.get('payment_status') ||
-        params.get('transaction_status') ||
-        ''
-      ).trim().toLowerCase();
-
-      /* Collect reference from all param names Credo might send */
-      var reference = (
-        params.get('reference') ||
-        params.get('trxref') ||
-        params.get('transaction_reference') ||
-        ''
-      ).trim();
-
-      /* ── Determine outcome ──────────────────────────────────────────────
-         Credo only redirects to the callbackUrl when payment succeeds, and
-         passes the reference without a status param. So: a UNICROSS- ref
-         with no recognised status = success.
-      ──────────────────────────────────────────────────────────────────── */
-      var isSuccess =
-        rawStatus === 'success' ||
-        rawStatus === 'completed' ||
-        rawStatus === '1' ||
-        rawStatus === 'successful' ||
-        (!rawStatus && reference && reference.startsWith('UNICROSS-'));
-
-      var isFailed =
-        rawStatus === 'failed' ||
-        rawStatus === 'cancelled' ||
-        rawStatus === '0' ||
-        rawStatus === 'failure' ||
-        !reference;
-
-      /* ── Helpers ── */
-      function esc(str) {
-        return String(str == null ? '' : str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
-      }
-
-      function refBox() {
-        if (!reference) return '';
-        return '<div class="ref-box">' +
-          '<div class="ref-label">Transaction Reference</div>' +
-          '<div class="ref-value">' + esc(reference) + '</div>' +
-        '</div>';
-      }
+      var BASE = 'https://unicross-backend-production.up.railway.app';
+      var reference = '';
+      try { reference = localStorage.getItem('payment_reference') || ''; } catch (e) {}
 
       var container = document.getElementById('callback-content');
 
-      function showSuccess() {
-        container.innerHTML =
-          '<div class="callback-icon success">&#10003;</div>' +
-          '<h2 class="fw-bold mb-2" style="color:var(--unicross-success);">Payment Successful!</h2>' +
-          '<p class="text-muted mb-0" style="font-size:0.95rem;">' +
-            'Your E-Pin has been sent to your registered email address.' +
-            ' Please check your inbox and spam folder.' +
-          '</p>' +
-          refBox() +
-          '<div class="d-grid mt-4">' +
-            '<a href="../index.html" class="btn btn-unicross-blue btn-lg">Login with E-Pin</a>' +
-          '</div>' +
-          '<p class="text-muted mt-3 mb-0" style="font-size:0.82rem;">' +
-            'Use your JAMB registration number and the E-Pin sent to you to log in.' +
-          '</p>';
+      function esc(str) {
+        return String(str == null ? '' : str)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
 
-      function showFailed() {
+      function refBox(ref) {
+        if (!ref) return '';
+        return '<div class="ref-box">' +
+          '<div class="ref-label">Transaction Reference</div>' +
+          '<div class="ref-value">' + esc(ref) + '</div>' +
+        '</div>';
+      }
+
+      /* ── Show loading spinner while calling verify ── */
+      container.innerHTML =
+        '<div class="callback-icon pending"><div class="pending-spinner"></div></div>' +
+        '<h2 class="fw-bold mb-2" style="color:#856404;">Verifying Payment&hellip;</h2>' +
+        '<p class="text-muted" style="font-size:0.95rem;">Please wait while we confirm your payment status.</p>';
+
+      /* ── If no reference in localStorage, can't verify ── */
+      if (!reference) {
         container.innerHTML =
           '<div class="callback-icon failed">&#10005;</div>' +
-          '<h2 class="fw-bold mb-2" style="color:var(--unicross-danger);">Payment Not Completed</h2>' +
+          '<h2 class="fw-bold mb-2" style="color:var(--unicross-danger);">Payment Reference Not Found</h2>' +
           '<p class="text-muted mb-0" style="font-size:0.95rem;">' +
-            'Your payment was not completed. No charge has been made to your account.' +
+            'We could not find your payment reference. If you completed a payment, please contact support.' +
           '</p>' +
-          refBox() +
+          '<div class="d-grid mt-4">' +
+            '<a href="../index.html" class="btn btn-unicross-blue btn-lg">Return to Home</a>' +
+          '</div>';
+        return;
+      }
+
+      /* ── Call verify endpoint — once, no polling ── */
+      fetch(BASE + '/api/registration/payment/verify/?reference=' + encodeURIComponent(reference), {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data) throw new Error('Empty response from server.');
+
+        var d        = (data.data) || {};
+        var ref      = d.reference || reference;
+        var isOk     = data.success && d.status === 'success' && d.has_epin === true;
+        var isPending = data.success && (d.status === 'pending' || d.has_epin === false);
+
+        if (isOk) {
+          /* Clear reference — payment confirmed */
+          try { localStorage.removeItem('payment_reference'); } catch (e) {}
+
+          var loginUrl = '../index.html' + (d.jamb_reg_no ? '?prefill_jamb=' + encodeURIComponent(d.jamb_reg_no) : '');
+
+          container.innerHTML =
+            '<div class="callback-icon success">&#10003;</div>' +
+            '<h2 class="fw-bold mb-2" style="color:var(--unicross-success);">Payment Successful!</h2>' +
+            '<p class="text-muted mb-1" style="font-size:0.95rem;">' +
+              'Your E-Pin has been sent to your registered email address.' +
+            '</p>' +
+            '<p class="text-muted mb-0" style="font-size:0.95rem;">' +
+              '<strong>Please check your inbox and spam folder.</strong>' +
+            '</p>' +
+            refBox(ref) +
+            '<div class="d-grid mt-4">' +
+              '<a href="' + loginUrl + '" class="btn btn-unicross-blue btn-lg">Login with E-Pin</a>' +
+            '</div>' +
+            '<p class="text-muted mt-3 mb-0" style="font-size:0.82rem;">' +
+              'Enter your JAMB registration number and the E-Pin from your email.' +
+            '</p>';
+
+        } else {
+          var msg = isPending
+            ? 'Payment not completed. If you were charged, please contact support with the reference below.'
+            : (data.message || 'Could not verify payment status. Please try again or contact support.');
+
+          container.innerHTML =
+            '<div class="callback-icon failed">&#10005;</div>' +
+            '<h2 class="fw-bold mb-2" style="color:var(--unicross-danger);">Payment Not Completed</h2>' +
+            '<p class="text-muted mb-0" style="font-size:0.95rem;">' + esc(msg) + '</p>' +
+            refBox(ref) +
+            '<div class="d-grid mt-4">' +
+              '<a href="../payment.html" class="btn btn-unicross-blue btn-lg">Try Again</a>' +
+            '</div>' +
+            '<div class="mt-3">' +
+              '<a href="../index.html" class="text-secondary" style="font-size:0.875rem;">&larr; Return to Home</a>' +
+            '</div>';
+        }
+      })
+      .catch(function () {
+        container.innerHTML =
+          '<div class="callback-icon failed">&#10005;</div>' +
+          '<h2 class="fw-bold mb-2" style="color:var(--unicross-danger);">Verification Error</h2>' +
+          '<p class="text-muted mb-0" style="font-size:0.95rem;">' +
+            'We could not reach the payment server. Please check your connection and try again.' +
+          '</p>' +
+          refBox(reference) +
           '<div class="d-grid mt-4">' +
             '<a href="../payment.html" class="btn btn-unicross-blue btn-lg">Try Again</a>' +
           '</div>' +
           '<div class="mt-3">' +
-            '<a href="../index.html" class="text-secondary" style="font-size:0.875rem;">' +
-              '&larr; Return to Home' +
-            '</a>' +
+            '<a href="../index.html" class="text-secondary" style="font-size:0.875rem;">&larr; Return to Home</a>' +
           '</div>';
-      }
+      });
 
-      /* ── Render ── */
-      if (isSuccess) {
-        showSuccess();
-      } else if (isFailed) {
-        showFailed();
-      } else {
-        /* Unknown status with an unrecognised reference — apply UNICROSS- heuristic */
-        if (reference && reference.startsWith('UNICROSS-')) {
-          showSuccess();
-        } else {
-          showFailed();
-        }
-      }
-
-      /* ── Back-button trap ───────────────────────────────────────────────
-         Prevent the user going back to the Credo payment page. Any back
-         navigation from the callback page goes to the home/login page.
-      ──────────────────────────────────────────────────────────────────── */
+      /* ── Back-button trap: redirect to home on browser back ── */
       history.pushState(null, '', window.location.href);
       window.addEventListener('popstate', function () {
         window.location.replace('../index.html');

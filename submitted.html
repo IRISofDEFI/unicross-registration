@@ -3,64 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Portal — Application Submitted</title>
+  <title>UNICROSS Portal — Application Submitted</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
     .check-circle {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
+      width: 80px; height: 80px; border-radius: 50%;
       background-color: #d4edda;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 1.25rem;
-      font-size: 2.2rem;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.25rem; font-size: 2.2rem;
     }
     .locked-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      background-color: #fff3cd;
-      border: 1px solid #ffc107;
-      border-radius: 2rem;
-      padding: 0.3rem 0.85rem;
-      font-size: 0.78rem;
-      color: #664d03;
-      font-weight: 600;
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background-color: #fff3cd; border: 1px solid #ffc107;
+      border-radius: 2rem; padding: 0.3rem 0.85rem;
+      font-size: 0.78rem; color: #664d03; font-weight: 600;
     }
     .summary-section-title {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      font-weight: 700;
-      color: var(--unicross-navy);
-      margin-bottom: 0.5rem;
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em;
+      font-weight: 700; color: var(--unicross-navy); margin-bottom: 0.5rem;
     }
-    .results-table th {
-      font-size: 0.78rem;
-      font-weight: 600;
-      background-color: #f1f3f5;
-      color: #495057;
-    }
+    .results-table th { font-size: 0.78rem; font-weight: 600; background-color: #f1f3f5; color: #495057; }
     .results-table td { font-size: 0.82rem; }
-    .grade-badge {
-      display: inline-block;
-      padding: 0.15rem 0.45rem;
-      border-radius: 0.25rem;
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
+    .grade-badge { display: inline-block; padding: 0.15rem 0.45rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; }
     .grade-badge.pass { background-color: #d4edda; color: #155724; }
     .grade-badge.fail { background-color: #f8d7da; color: #721c24; }
-
     @media print {
       .no-print { display: none !important; }
-      .site-header,
-      .site-footer,
-      .alert-success-banner { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      body { font-size: 12px; }
+      .site-header, .site-footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
@@ -73,10 +43,7 @@
         <img src="unicross_logo.jpg" height="60" alt="University Logo" class="header-logo institution-logo" />
         <div class="header-divider"></div>
         <div class="wordmark">
-          <div>
-            <span class="brand-main">UNICROSS</span>
-            <span class="brand-sub ms-2">PORTAL</span>
-          </div>
+          <div><span class="brand-main">UNICROSS</span><span class="brand-sub ms-2">PORTAL</span></div>
           <div class="university-name institution-name">University of Cross River State</div>
         </div>
         <div class="header-session-label">2025/2026 Screening Registration</div>
@@ -86,116 +53,141 @@
 
   <main class="page-content">
 
-    <!-- SUCCESS BANNER -->
-    <div class="alert-success-banner py-3">
+    <div class="alert-success-banner py-3 no-print">
       <div class="container d-flex align-items-center gap-2">
         <span style="font-size:1.4rem;">&#10004;</span>
         <strong>Application Submitted Successfully!</strong>
       </div>
     </div>
 
-    <div class="container py-4">
-      <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10">
+    <!-- Loading -->
+    <div id="sub-loading" class="container py-5 text-center">
+      <div class="spinner-border mb-3" role="status" style="color:var(--unicross-blue);width:2.5rem;height:2.5rem;">
+        <span class="visually-hidden">Loading…</span>
+      </div>
+      <p class="text-muted">Loading your application summary&hellip;</p>
+    </div>
 
-          <!-- HEADING -->
-          <div class="text-center mb-4">
-            <div class="check-circle">&#9989;</div>
-            <h2 class="fw-bold mb-2" style="color:var(--unicross-navy);">Application Submitted</h2>
-            <div class="mb-3">
-              <span class="locked-badge">&#128274; Locked &mdash; No Further Edits Allowed</span>
-            </div>
-            <p class="text-muted mb-0" style="font-size:0.9rem;">
-              Your application has been received and is under review by the admissions office.
-            </p>
-          </div>
+    <!-- Error -->
+    <div id="sub-error" class="container py-4 d-none">
+      <div class="alert alert-warning">
+        Could not load your application details. <a href="index.html">Return to home</a>.
+      </div>
+    </div>
 
-          <!-- CANDIDATE SUMMARY -->
-          <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-bottom">
-              <div class="summary-section-title mb-0">&#128203; Application Summary</div>
-            </div>
-            <div class="card-body">
-              <table class="table table-sm table-borderless mb-0">
-                <tbody id="summary-table"></tbody>
-              </table>
-            </div>
-          </div>
+    <!-- Content -->
+    <div id="sub-content" class="d-none">
+      <div class="container py-4">
+        <div class="row justify-content-center">
+          <div class="col-lg-8 col-md-10">
 
-          <!-- BIODATA SUMMARY -->
-          <div class="card border-0 shadow-sm mb-4" id="biodata-summary-card">
-            <div class="card-header bg-white border-bottom">
-              <div class="summary-section-title mb-0">&#128100; Personal &amp; Contact Details</div>
+            <div class="text-center mb-4">
+              <div class="check-circle">&#9989;</div>
+              <h2 class="fw-bold mb-2" style="color:var(--unicross-navy);">Application Submitted</h2>
+              <div class="mb-3">
+                <span class="locked-badge">&#128274; Locked &mdash; No Further Edits Allowed</span>
+              </div>
+              <p class="text-muted mb-0" style="font-size:0.9rem;">
+                Your application has been received and is under review by the admissions office.
+              </p>
             </div>
-            <div class="card-body">
-              <table class="table table-sm table-borderless mb-0">
-                <tbody id="biodata-table"></tbody>
-              </table>
-            </div>
-          </div>
 
-          <!-- UTME RESULTS SUMMARY -->
-          <div class="card border-0 shadow-sm mb-4" id="utme-summary-card">
-            <div class="card-header bg-white border-bottom">
-              <div class="summary-section-title mb-0">&#127891; UTME / JAMB Results</div>
-            </div>
-            <div class="card-body p-0">
-              <div class="table-responsive">
-                <table class="table table-sm results-table mb-0">
-                  <thead>
-                    <tr>
-                      <th class="ps-3">Subject</th>
-                      <th style="width:120px;">Score</th>
-                    </tr>
-                  </thead>
-                  <tbody id="utme-summary-body"></tbody>
-                  <tfoot>
-                    <tr style="background-color:#eef4fc;">
-                      <td class="ps-3 fw-semibold" style="font-size:0.82rem;">Total</td>
-                      <td class="fw-bold" style="color:var(--unicross-navy);" id="utme-total-display">—</td>
-                    </tr>
-                  </tfoot>
+            <!-- Application summary -->
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-white border-bottom">
+                <div class="summary-section-title mb-0">&#128203; Application Summary</div>
+              </div>
+              <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                  <tbody id="summary-table"></tbody>
                 </table>
               </div>
             </div>
-          </div>
 
-          <!-- SSCE RESULTS SUMMARY -->
-          <div id="ssce-summary-container"></div>
-
-          <!-- INFO BOX -->
-          <div class="alert d-flex gap-2 align-items-start mb-4"
-               style="background-color:#e8f4fd;border-left:4px solid var(--unicross-blue);color:#0c3559;"
-               role="alert">
-            <span style="font-size:1.1rem; flex-shrink:0;">&#8505;</span>
-            <div style="font-size:0.9rem;">
-              <strong>What happens next?</strong><br />
-              Your application is under review. You will be notified when screening is activated.
-              Check back on this portal using your registration number and E-Pin for status updates.
+            <!-- Personal details -->
+            <div class="card border-0 shadow-sm mb-4" id="personal-card">
+              <div class="card-header bg-white border-bottom">
+                <div class="summary-section-title mb-0">&#128100; Personal &amp; Contact Details</div>
+              </div>
+              <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                  <tbody id="personal-table"></tbody>
+                </table>
+              </div>
             </div>
+
+            <!-- Guardian -->
+            <div class="card border-0 shadow-sm mb-4" id="guardian-card">
+              <div class="card-header bg-white border-bottom">
+                <div class="summary-section-title mb-0">&#128106; Parent / Guardian</div>
+              </div>
+              <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                  <tbody id="guardian-table"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- UTME -->
+            <div class="card border-0 shadow-sm mb-4" id="utme-card">
+              <div class="card-header bg-white border-bottom">
+                <div class="summary-section-title mb-0">&#127891; UTME / JAMB Results</div>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-sm results-table mb-0">
+                    <thead><tr><th class="ps-3">Subject</th><th style="width:120px;">Score</th></tr></thead>
+                    <tbody id="utme-tbody"></tbody>
+                    <tfoot>
+                      <tr style="background-color:#eef4fc;">
+                        <td class="ps-3 fw-semibold" style="font-size:0.82rem;">Total</td>
+                        <td class="fw-bold" style="color:var(--unicross-navy);" id="utme-total">—</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- SSCE -->
+            <div id="ssce-container"></div>
+
+            <!-- Credentials -->
+            <div class="card border-0 shadow-sm mb-4" id="cred-card">
+              <div class="card-header bg-white border-bottom">
+                <div class="summary-section-title mb-0">&#128196; Uploaded Documents</div>
+              </div>
+              <div class="card-body" id="cred-list"></div>
+            </div>
+
+            <!-- Info box -->
+            <div class="alert d-flex gap-2 align-items-start mb-4"
+                 style="background-color:#e8f4fd;border-left:4px solid var(--unicross-blue);color:#0c3559;" role="alert">
+              <span style="font-size:1.1rem;flex-shrink:0;">&#8505;</span>
+              <div style="font-size:0.9rem;">
+                <strong>What happens next?</strong><br />
+                Your application is under review. You will be notified when screening is activated.
+                Check back on this portal using your registration number and E-Pin for status updates.
+              </div>
+            </div>
+
+            <p class="text-muted text-center mb-4" style="font-size:0.85rem;">
+              For any issues, contact the admissions office at
+              <a href="mailto:admissions@unicross.edu.ng">admissions@unicross.edu.ng</a>.
+            </p>
+
+            <div class="d-flex flex-wrap gap-2 justify-content-center mb-4 no-print">
+              <button type="button" class="btn btn-outline-secondary" onclick="window.print()">&#128438; Print Summary</button>
+              <a href="index.html" class="btn btn-outline-secondary">&larr; Return to Home</a>
+            </div>
+
           </div>
-
-          <!-- SUPPORT NOTE -->
-          <p class="text-muted text-center mb-4" style="font-size:0.85rem;">
-            For any issues or corrections, contact the admissions office at
-            <a href="mailto:admissions@unicross.edu.ng">admissions@unicross.edu.ng</a>.
-          </p>
-
-          <!-- ACTIONS -->
-          <div class="d-flex flex-wrap gap-2 justify-content-center mb-4 no-print">
-            <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
-              &#128438; Print Summary
-            </button>
-            <a href="index.html" class="btn btn-outline-secondary">&larr; Return to Home</a>
-          </div>
-
         </div>
       </div>
     </div>
 
   </main>
 
-  <!-- FOOTER -->
   <footer class="site-footer text-center">
     <div class="container">
       <p class="mb-0">&copy; 2025 <span class="institution-name">University of Cross River State</span>. All rights reserved.</p>
@@ -205,141 +197,147 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/main.js"></script>
   <script>
-    /* ─── localStorage helpers (same prefix as register.html) ─── */
-    var REG = 'ucrs_reg_';
-    function getReg(key) {
-      try {
-        var raw = localStorage.getItem(REG + key);
-        if (raw === null) return null;
-        try { return JSON.parse(raw); } catch (e) { return raw; }
-      } catch (e) { return null; }
+    if (!getToken()) { window.location.replace('index.html'); }
+
+    var PASS_GRADES = ['A1','B2','B3','C4','C5','C6'];
+
+    function makeRow(label, value) {
+      var tr = document.createElement('tr');
+      var safe = String(value == null ? '—' : value)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      tr.innerHTML =
+        '<th class="text-muted fw-normal ps-0" style="width:40%;font-size:0.875rem;">' + label + '</th>' +
+        '<td class="fw-semibold" style="font-size:0.875rem;">' + (safe || '—') + '</td>';
+      return tr;
     }
 
-    /* ─── Session guard ─────────────────────────────────── */
-    redirectIfNoSession('epin', 'index.html');
+    apiFetch('/api/registration/profile/', { method: 'GET' })
+      .then(function (data) {
+        if (!data || !data.success) throw new Error((data && data.message) || 'Could not load profile.');
+        var d = data.data || data;
 
-    /* ─── Data sources: sessionStorage + localStorage fallback ── */
-    var candidate   = getSession('candidate') || getReg('candidate');
-    var regNo       = getSession('reg_no')    || getReg('reg_no')  || '—';
-    var epin        = getSession('epin')                           || '—';
-    var txnRef      = getSession('txn_ref')                        || '—';
-    var biodata     = getReg('biodata')   || {};
-    var utmeResults = getReg('utme')      || [];
-    var ssceResults = getReg('ssce')      || [];
+        /* Application summary */
+        var summaryRows = [
+          ['Full Name',   d.fullname   || d.candidate_name || '—'],
+          ['JAMB Reg No', d.jamb_reg_no || '—'],
+          ['Faculty',     d.faculty    || '—'],
+          ['Department',  d.department || '—'],
+          ['Programme',   d.programme  || '—'],
+          ['Status',      '&#9989; Submitted']
+        ];
+        var summaryTbody = document.getElementById('summary-table');
+        summaryRows.forEach(function (r) { summaryTbody.appendChild(makeRow(r[0], r[1])); });
 
-    /* ── Application summary table ──────────────────────── */
-    (function buildSummaryTable() {
-      var rows = [
-        ['Full Name',        candidate ? (candidate.fullname || candidate.name) : '—'],
-        ['Reg No',           regNo],
-        ['Faculty',          candidate ? candidate.faculty     : '—'],
-        ['Department',       candidate ? candidate.department  : '—'],
-        ['Programme',        candidate ? candidate.programme   : '—'],
-        ['E-Pin',            epin],
-        ['Transaction Ref',  txnRef],
-        ['Submission Status','&#9989; Submitted']
-      ];
-      var tbody = document.getElementById('summary-table');
-      rows.forEach(function (row) {
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<th class="text-muted fw-normal ps-0" style="width:40%;font-size:0.875rem;">' + row[0] + '</th>' +
-          '<td class="fw-semibold" style="font-size:0.875rem;">' + row[1] + '</td>';
-        tbody.appendChild(tr);
+        /* Personal */
+        var p = d.personal || d;
+        var personalRows = [
+          ['Email',       p.email          || d.email],
+          ['Phone',       p.phone          || d.phone],
+          ['Date of Birth', p.dob          || d.dob],
+          ['Blood Group', p.blood_group    || d.blood_group],
+          ['Marital Status', p.marital_status || d.marital_status],
+          ['Address',     p.address        || d.address],
+          ['Nationality', p.nationality    || d.nationality],
+          ['State',       p.state          || d.state || d.state_of_origin],
+          ['LGA',         p.lga            || d.lga   || d.lga_of_origin]
+        ].filter(function (r) { return r[1]; });
+        var personalTbody = document.getElementById('personal-table');
+        if (personalRows.length) {
+          personalRows.forEach(function (r) { personalTbody.appendChild(makeRow(r[0], r[1])); });
+        } else {
+          document.getElementById('personal-card').style.display = 'none';
+        }
+
+        /* Guardian */
+        var g = d.guardian || {};
+        var guardianRows = [
+          ['Name',    g.name],
+          ['Phone',   g.phone],
+          ['Address', g.address]
+        ].filter(function (r) { return r[1]; });
+        var guardianTbody = document.getElementById('guardian-table');
+        if (guardianRows.length) {
+          guardianRows.forEach(function (r) { guardianTbody.appendChild(makeRow(r[0], r[1])); });
+        } else {
+          document.getElementById('guardian-card').style.display = 'none';
+        }
+
+        /* UTME */
+        var utme     = d.utme || d.utme_results || {};
+        var subjects = utme.subjects || utme.utme_subjects || [];
+        if (subjects.length) {
+          var utmeTbody = document.getElementById('utme-tbody');
+          var total = utme.total || 0;
+          subjects.forEach(function (s) {
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+              '<td class="ps-3">' + (s.subject || s.name || '—') + '</td>' +
+              '<td><strong>' + (s.score != null ? s.score : '—') + '</strong></td>';
+            utmeTbody.appendChild(tr);
+            if (!utme.total && s.score != null) total += s.score;
+          });
+          document.getElementById('utme-total').textContent = total || '—';
+        } else {
+          document.getElementById('utme-card').style.display = 'none';
+        }
+
+        /* SSCE */
+        var ssce = d.ssce || {};
+        var sittings = ssce.sittings || [];
+        var ssceContainer = document.getElementById('ssce-container');
+        if (sittings.length) {
+          sittings.forEach(function (sitting) {
+            var label = sitting.sitting === 2 ? 'Sitting 2' : 'Sitting 1';
+            var card  = document.createElement('div');
+            card.className = 'card border-0 shadow-sm mb-4';
+            var rows = (sitting.subjects || []).map(function (s) {
+              var isPass = PASS_GRADES.indexOf(s.grade) !== -1;
+              var badge  = '<span class="grade-badge ' + (isPass ? 'pass' : 'fail') + '">' + (s.grade || '') + '</span>';
+              return '<tr><td class="ps-3">' + (s.name || s.subject || '') + '</td><td>' + badge + '</td></tr>';
+            }).join('');
+            card.innerHTML =
+              '<div class="card-header bg-white border-bottom">' +
+                '<div class="summary-section-title mb-0">&#128196; O\'Level Results &mdash; ' + label +
+                  ' <span class="fw-normal text-muted" style="font-size:0.75rem;">(' +
+                  (sitting.type || '') + ' ' + (sitting.session || '') + ' ' + (sitting.year || '') +
+                  ' | No: ' + (sitting.regno || '—') + ')</span>' +
+                '</div>' +
+              '</div>' +
+              '<div class="card-body p-0">' +
+                '<div class="table-responsive">' +
+                  '<table class="table table-sm results-table mb-0">' +
+                    '<thead><tr><th class="ps-3">Subject</th><th>Grade</th></tr></thead>' +
+                    '<tbody>' + rows + '</tbody>' +
+                  '</table>' +
+                '</div>' +
+              '</div>';
+            ssceContainer.appendChild(card);
+          });
+        }
+
+        /* Credentials */
+        var credentials = d.credentials || [];
+        var credList = document.getElementById('cred-list');
+        if (credentials.length) {
+          credentials.forEach(function (cred) {
+            var div = document.createElement('div');
+            div.style.cssText = 'display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0;border-bottom:1px solid #f0f0f0;';
+            div.innerHTML =
+              '<span style="font-size:0.75rem;font-weight:600;padding:0.2rem 0.5rem;border-radius:0.25rem;background:#e8f4fd;color:#0c3559;">' + (cred.type || '') + '</span>' +
+              '<span style="font-size:0.875rem;font-weight:500;">' + (cred.label || '—') + '</span>';
+            credList.appendChild(div);
+          });
+        } else {
+          document.getElementById('cred-card').style.display = 'none';
+        }
+
+        document.getElementById('sub-loading').classList.add('d-none');
+        document.getElementById('sub-content').classList.remove('d-none');
+      })
+      .catch(function () {
+        document.getElementById('sub-loading').classList.add('d-none');
+        document.getElementById('sub-error').classList.remove('d-none');
       });
-    }());
-
-    /* ── Biodata summary table ──────────────────────────── */
-    (function buildBiodataTable() {
-      var card = document.getElementById('biodata-summary-card');
-      if (!biodata || !biodata.email) { card.style.display = 'none'; return; }
-
-      var rows = [
-        ['Email Address',          biodata.email          || '—'],
-        ['Phone Number',           biodata.phone          || '—'],
-        ['Home Address',           biodata.address        || '—'],
-        ['State of Origin',        biodata.state          || '—'],
-        ['LGA',                    biodata.lga            || '—'],
-        ['Date of Birth',          biodata.dob            || '—'],
-        ['Gender',                 biodata.gender         || '—'],
-        ['Blood Group',            biodata.blood          || '—'],
-        ['Guardian Name',          biodata.guardianName   || '—'],
-        ['Guardian Phone',         biodata.guardianPhone  || '—'],
-        ['Guardian Address',       biodata.guardianAddress|| '—']
-      ];
-      var tbody = document.getElementById('biodata-table');
-      rows.forEach(function (row) {
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<th class="text-muted fw-normal ps-0" style="width:40%;font-size:0.875rem;">' + row[0] + '</th>' +
-          '<td class="fw-semibold" style="font-size:0.875rem;">' + row[1] + '</td>';
-        tbody.appendChild(tr);
-      });
-    }());
-
-    /* ── UTME results summary ───────────────────────────── */
-    (function buildUtmeSummary() {
-      var tbody = document.getElementById('utme-summary-body');
-      if (!utmeResults.length) {
-        document.getElementById('utme-summary-card').style.display = 'none';
-        return;
-      }
-      var total = 0;
-      utmeResults.forEach(function (row) {
-        total += (row.score || 0);
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td class="ps-3">' + (row.subject || '—') + '</td>' +
-          '<td><strong>' + (row.score || 0) + '</strong></td>';
-        tbody.appendChild(tr);
-      });
-      document.getElementById('utme-total-display').textContent = total;
-    }());
-
-    /* ── SSCE results summary ───────────────────────────── */
-    (function buildSsceSummary() {
-      var container  = document.getElementById('ssce-summary-container');
-      if (!ssceResults.length) return;
-
-      var PASS_GRADES = ['A1','B2','B3','C4','C5','C6'];
-
-      ssceResults.forEach(function (sitting) {
-        var label = sitting.sitting === 2 ? 'Sitting 2' : 'Sitting 1';
-        var card  = document.createElement('div');
-        card.className = 'card border-0 shadow-sm mb-4';
-
-        var thead =
-          '<thead><tr><th class="ps-3">Subject</th><th>Grade</th></tr></thead>';
-
-        var rows = (sitting.subjects || []).map(function (s) {
-          var isPass = PASS_GRADES.indexOf(s.grade) !== -1;
-          var badge  = '<span class="grade-badge ' + (isPass ? 'pass' : 'fail') + '">' + s.grade + '</span>';
-          return '<tr><td class="ps-3">' + s.subject + '</td><td>' + badge + '</td></tr>';
-        }).join('');
-
-        card.innerHTML =
-          '<div class="card-header bg-white border-bottom">' +
-            '<div class="summary-section-title mb-0">' +
-              '&#128196; O\'Level Results &mdash; ' + label +
-              ' <span class="fw-normal text-muted" style="font-size:0.75rem;">(' +
-              (sitting.examType || '') + ' ' + (sitting.examYear || '') +
-              ' &nbsp;|&nbsp; No: ' + (sitting.examNo || '—') + ')</span>' +
-            '</div>' +
-          '</div>' +
-          '<div class="card-body p-0">' +
-            '<div class="table-responsive">' +
-              '<table class="table table-sm results-table mb-0">' +
-                thead +
-                '<tbody>' + rows + '</tbody>' +
-              '</table>' +
-            '</div>' +
-          '</div>';
-
-        container.appendChild(card);
-      });
-    }());
-
-    loadInstitution();
   </script>
 </body>
 </html>

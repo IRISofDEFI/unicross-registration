@@ -142,12 +142,6 @@
     document.getElementById('fee-amount').textContent  = formatNaira(FEE_AMOUNT);
     document.getElementById('total-amount').textContent = formatNaira(FEE_AMOUNT);
 
-    /* Generate a transaction reference for this session */
-    if (!getSession('txn_ref')) {
-      const ref = 'TXN-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-      saveSession('txn_ref', ref);
-    }
-
     /* Inline error helper */
     const payErr = document.getElementById('pay-error');
     function showPayError(msg) {
@@ -190,6 +184,8 @@
         }
         var d = data.data || {};
         if (d.payment_url) {
+          /* Save reference to localStorage — callback page reads it to call verify endpoint */
+          try { localStorage.setItem('payment_reference', d.reference || ''); } catch (e) {}
           window.location.href = d.payment_url;
         } else {
           throw new Error('No payment URL returned from server.');
