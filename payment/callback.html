@@ -19,7 +19,6 @@
     }
     .callback-icon.success { background-color: #d4edda; color: var(--unicross-success); }
     .callback-icon.failed  { background-color: #f8d7da; color: var(--unicross-danger);  }
-    .callback-icon.pending { background-color: #fff3cd; color: #856404; }
 
     .ref-box {
       background-color: #f4f6f9;
@@ -44,23 +43,6 @@
       font-weight: 600;
       color: var(--unicross-navy);
       word-break: break-all;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .pending-spinner {
-      display: inline-block;
-      width: 2.75rem;
-      height: 2.75rem;
-      border: 4px solid #ffc107;
-      border-top-color: transparent;
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
-    }
-    #countdown {
-      font-weight: 700;
-      color: var(--unicross-navy);
     }
   </style>
 </head>
@@ -116,20 +98,9 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      /* ── DEBUG: log every param Credo sends ── */
-      console.log('=== CALLBACK URL PARAMS ===');
-      var debugParams = new URLSearchParams(window.location.search);
-      debugParams.forEach(function (value, key) {
-        console.log(key + ': ' + value);
-      });
-      console.log('Full URL:', window.location.href);
-      console.log('===========================');
-
-      var MAX_REFRESHES = 2;
-
       var params = new URLSearchParams(window.location.search);
 
-      /* Collect status from every param name Credo might send */
+      /* Collect status from all param names Credo might send */
       var rawStatus = (
         params.get('status') ||
         params.get('paymentStatus') ||
@@ -138,27 +109,32 @@
         ''
       ).trim().toLowerCase();
 
-      /* Collect reference from every param name Credo might send */
+      /* Collect reference from all param names Credo might send */
       var reference = (
         params.get('reference') ||
         params.get('trxref') ||
         params.get('transaction_reference') ||
-        params.get('transaction_id') ||
         ''
       ).trim();
 
-      /* ── Determine outcome ── */
+      /* ── Determine outcome ──────────────────────────────────────────────
+         Credo only redirects to the callbackUrl when payment succeeds, and
+         passes the reference without a status param. So: a UNICROSS- ref
+         with no recognised status = success.
+      ──────────────────────────────────────────────────────────────────── */
       var isSuccess =
         rawStatus === 'success' ||
         rawStatus === 'completed' ||
         rawStatus === '1' ||
-        /* Credo only sends reference on success — treat a valid UNICROSS- ref as success */
+        rawStatus === 'successful' ||
         (!rawStatus && reference && reference.startsWith('UNICROSS-'));
 
       var isFailed =
         rawStatus === 'failed' ||
         rawStatus === 'cancelled' ||
-        rawStatus === '0';
+        rawStatus === '0' ||
+        rawStatus === 'failure' ||
+        !reference;
 
       /* ── Helpers ── */
       function esc(str) {
@@ -180,7 +156,6 @@
       var container = document.getElementById('callback-content');
 
       function showSuccess() {
-        sessionStorage.removeItem('callbackRefreshCount');
         container.innerHTML =
           '<div class="callback-icon success">&#10003;</div>' +
           '<h2 class="fw-bold mb-2" style="color:var(--unicross-success);">Payment Successful!</h2>' +
@@ -198,7 +173,6 @@
       }
 
       function showFailed() {
-        sessionStorage.removeItem('callbackRefreshCount');
         container.innerHTML =
           '<div class="callback-icon failed">&#10005;</div>' +
           '<h2 class="fw-bold mb-2" style="color:var(--unicross-danger);">Payment Not Completed</h2>' +
@@ -216,67 +190,28 @@
           '</div>';
       }
 
-      /* ── Render based on outcome ── */
+      /* ── Render ── */
       if (isSuccess) {
         showSuccess();
-
       } else if (isFailed) {
         showFailed();
-
       } else {
-        /* Status still unknown — allow up to MAX_REFRESHES auto-refreshes,
-           then resolve: valid UNICROSS- reference → success, otherwise failed. */
-        var refreshCount = parseInt(sessionStorage.getItem('callbackRefreshCount') || '0', 10);
-
-        if (refreshCount >= MAX_REFRESHES) {
-          /* Exhausted retries — decide now */
-          if (reference && reference.startsWith('UNICROSS-')) {
-            showSuccess();
-          } else {
-            showFailed();
-          }
+        /* Unknown status with an unrecognised reference — apply UNICROSS- heuristic */
+        if (reference && reference.startsWith('UNICROSS-')) {
+          showSuccess();
         } else {
-          /* Pending — show spinner and schedule next refresh */
-          sessionStorage.setItem('callbackRefreshCount', String(refreshCount + 1));
-
-          var waitSeconds = 3;
-          container.innerHTML =
-            '<div class="callback-icon pending">' +
-              '<div class="pending-spinner"></div>' +
-            '</div>' +
-            '<h2 class="fw-bold mb-2" style="color:#856404;">Verifying Payment&hellip;</h2>' +
-            '<p class="text-muted mb-3" style="font-size:0.95rem;">' +
-              'Please wait while we confirm your payment status.' +
-            '</p>' +
-            '<p class="text-muted mb-4" style="font-size:0.875rem;">' +
-              'Refreshing in <span id="countdown">' + waitSeconds + '</span> seconds&hellip;' +
-              ' (attempt ' + (refreshCount + 1) + ' of ' + MAX_REFRESHES + ')' +
-            '</p>' +
-            '<div class="d-grid">' +
-              '<button id="btn-check" class="btn btn-unicross-blue btn-lg">Check Now</button>' +
-            '</div>' +
-            refBox();
-
-          var seconds = waitSeconds;
-          var tick = setInterval(function () {
-            seconds -= 1;
-            var el = document.getElementById('countdown');
-            if (el) el.textContent = seconds;
-            if (seconds <= 0) {
-              clearInterval(tick);
-              window.location.reload();
-            }
-          }, 1000);
-
-          var btnCheck = document.getElementById('btn-check');
-          if (btnCheck) {
-            btnCheck.addEventListener('click', function () {
-              clearInterval(tick);
-              window.location.reload();
-            });
-          }
+          showFailed();
         }
       }
+
+      /* ── Back-button trap ───────────────────────────────────────────────
+         Prevent the user going back to the Credo payment page. Any back
+         navigation from the callback page goes to the home/login page.
+      ──────────────────────────────────────────────────────────────────── */
+      history.pushState(null, '', window.location.href);
+      window.addEventListener('popstate', function () {
+        window.location.replace('../index.html');
+      });
     });
   </script>
 </body>

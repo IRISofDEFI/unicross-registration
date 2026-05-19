@@ -230,7 +230,7 @@
     /* ── Application summary table ──────────────────────── */
     (function buildSummaryTable() {
       var rows = [
-        ['Full Name',        candidate ? candidate.name       : '—'],
+        ['Full Name',        candidate ? (candidate.fullname || candidate.name) : '—'],
         ['Reg No',           regNo],
         ['Faculty',          candidate ? candidate.faculty     : '—'],
         ['Department',       candidate ? candidate.department  : '—'],

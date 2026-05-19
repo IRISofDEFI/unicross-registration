@@ -221,8 +221,14 @@
   <script src="js/main.js"></script>
   <script>
     /* ── Clear any leftover session so returning users start fresh ── */
-    ['candidate_token', 'candidate', 'reg_no', 'email', 'phone', 'txn_ref', 'epin'].forEach(function (k) {
+    var SESSION_KEYS = [
+      'candidate_token', 'candidate', 'reg_no', 'email', 'phone', 'txn_ref', 'epin',
+      'candidate_id', 'jamb_reg_no', 'candidate_name',
+      'payment_url', 'payment_reference', 'callbackRefreshCount'
+    ];
+    SESSION_KEYS.forEach(function (k) {
       sessionStorage.removeItem(k);
+      try { localStorage.removeItem(k); } catch (e) {}
     });
     try {
       Object.keys(localStorage)

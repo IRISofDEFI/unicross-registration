@@ -791,6 +791,17 @@
       } catch (e) {}
     }
 
+    /* ── Back-button trap ───────────────────────────────────────────────
+       Prevent navigating back to index.html which would wipe the session
+       (the candidate's token and epin are in sessionStorage). Within this
+       page the step navigation is JS-driven, not browser-history-driven,
+       so this only affects attempts to leave the form entirely.
+    ──────────────────────────────────────────────────────────────────── */
+    history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', function () {
+      history.pushState(null, '', window.location.href);
+    });
+
     /* ─── Auth (still from sessionStorage) ─────────── */
     redirectIfNoSession('epin', 'index.html');
     var candidate = getSession('candidate') || getReg('candidate');
